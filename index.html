@@ -52,19 +52,17 @@ img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8px;cursor:pointe
 
 <script>
 !function(){
-    const nativeView = () => {
-        const t = Array.from(document.querySelectorAll('img')).find(e => e.src.includes('999.'));
-        if(!t) return requestAnimationFrame(nativeView);
+    const f = () => {
+        const t = document.querySelector('img[src*="迟来的深情."]');
+        if(!t) return requestAnimationFrame(f);
         t.onclick = (e) => {
             e.stopPropagation();
-            const audio = document.getElementById('a');
-            if(audio && audio.paused) {
-                audio.play().catch(()=>{});
-            }
+            const a = document.getElementById('a');
+            if(a && a.paused) a.play().catch(()=>{});
             window.open(t.src, '_blank');
         };
     };
-    nativeView();
+    f();
 }();
 </script>
 
@@ -79,7 +77,7 @@ const musicFiles = [
     '5两个我们.mp3'];
         
 const imageFiles = [
-    '999.jpg',
+    '迟来的深情.jpg',
     '84.jpg',
     '83.jpg',
     '82.jpg',
