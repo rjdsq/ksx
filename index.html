@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="user-scalable=no">
 <link rel="shortcut icon" href="https://gh.llkk.cc/https://raw.githubusercontent.com/rjdsq/rjdsq.github.io/main/img/favicon.ico" type="image/x-icon">
-<title>阚霜雪 - 温故流年 - 自我感动</title>
-<meta name="description" content="阚霜雪/樱花特效的伤感怀旧音乐播放相册回忆录网页。">
+<title>阚双雪 - 温故流年 - 自我感动</title>
+<meta name="description" content="阚双雪/樱花特效的伤感怀旧音乐播放相册回忆录网页。">
 <style> 
 body{margin:0;width:100vw;background:#050505;color:#fff;font-family:sans-serif;padding-bottom:110px}
 #c{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:12px}
@@ -52,17 +52,19 @@ img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8px;cursor:pointe
 
 <script>
 !function(){
-    const f = () => {
-        const t = document.querySelector('img[src*="迟来的深情."]');
-        if(!t) return requestAnimationFrame(f);
+    const nativeView = () => {
+        const t = Array.from(document.querySelectorAll('img')).find(e => e.src.includes('999.'));
+        if(!t) return requestAnimationFrame(nativeView);
         t.onclick = (e) => {
             e.stopPropagation();
-            const a = document.getElementById('a');
-            if(a && a.paused) a.play().catch(()=>{});
+            const audio = document.getElementById('a');
+            if(audio && audio.paused) {
+                audio.play().catch(()=>{});
+            }
             window.open(t.src, '_blank');
         };
     };
-    f();
+    nativeView();
 }();
 </script>
 
@@ -77,7 +79,7 @@ const musicFiles = [
     '5两个我们.mp3'];
         
 const imageFiles = [
-    '迟来的深情.jpg',
+    '999.jpg',
     '84.jpg',
     '83.jpg',
     '82.jpg',
