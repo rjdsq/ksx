@@ -193,7 +193,7 @@ img {
     margin-right: 10px; box-shadow: 0 0 8px var(--accent-gold);
 }
 
-
+.t {font-size:12px; height:28px; text-align:center;line-height:28px;}
 
 body > canvas:not(#cvs) {
     position: fixed !important;
@@ -265,8 +265,11 @@ body > canvas:not(#cvs) {
 
 <div id="c"></div>
 <div id="v"><img></div>
+<div class="t"></div>
+
 <div id="lv"><img id="li"></div>
 <div id="ml"></div>
+
 
 <div class="nav-container">
     <div class="nav">
@@ -578,7 +581,7 @@ setTimeout(() => {
     
     document.querySelector('.t').textContent = timeStr;
   }, 1000);
-}, 15000);
+}, 5000);
 </script>
 
 <script>
