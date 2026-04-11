@@ -131,7 +131,7 @@ img {
 }
 
 #v {
-    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9);
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.77);
     display: none; align-items: center; justify-content: center;
     z-index: 2000; cursor: zoom-out;
 }
@@ -600,7 +600,7 @@ body > canvas:not(#cvs) {
         void target.offsetWidth;
         
         if (dir === 'next') target.style.animation = 'slideNext 0.5s ease-out forwards';
-        else if (dir === 'prev') target.style.animation = 'slidePrev 0.5s ease-out forwards';
+        else if (dir === 'prev') target.style.animation = 'slidePrev 0.4s ease-out forwards';
         else target.style.animation = 'softZoom 0.5s ease-out forwards';
         
         preloadImage(index + 1);
