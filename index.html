@@ -921,15 +921,15 @@ createRainEffect();
     break;
 case 'fnx':
     // 左右飘移方向随机值
-    random = -0.1 + Math.random();
+    random = -0.3 + Math.random();
     ret = function (x, y) {
         // 0.3=左右飘幅度；1.0=左右飘速度
-        return x + 0.4 * random - 0.9;
+        return x + 0.4 * random - 1;
     };
     break;
 case 'fny':
     // 0.5=下落基础速度；1.0=速度波动大小
-    random = 0.5 + Math.random() * 1.2
+    random = 1 + Math.random() * 1.7
     ret = function (x, y) {
         // 垂直下落速度
         return y + random;
@@ -937,7 +937,7 @@ case 'fny':
     break;
 case 'fnr':
     // 樱花旋转速度
-    random = Math.random() * 0.02;
+    random = Math.random() * 0.03;
     ret = function (r) {
         // 每帧旋转角度增加
         return r + random;
