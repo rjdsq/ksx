@@ -131,7 +131,7 @@ img {
 }
 
 #v {
-    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95);
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9);
     display: none; align-items: center; justify-content: center;
     z-index: 2000; cursor: zoom-out;
 }
@@ -532,49 +532,141 @@ body > canvas:not(#cvs) {
     window.addEventListener('popstate', () => {
         v.style.display = 'none';
         lv.style.display = 'none';
+        document.body.style.overflow = '';
     });
 
-    const closeViewer = () => {
+    const closeViewer = (e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         if(v.style.display !== 'none' || lv.style.display !== 'none') {
             history.back();
         }
     };
+
+    const extStyle = document.createElement('style');
+    extStyle.textContent = `
+        @keyframes slideNext { 
+            0% { opacity: 0; transform: translateY(15px); } 
+            100% { opacity: 1; transform: translateY(0); } 
+        }
+        @keyframes slidePrev { 
+            0% { opacity: 0; transform: translateY(-15px); } 
+            100% { opacity: 1; transform: translateY(0); } 
+        }
+        @keyframes softZoom { 
+            0% { opacity: 0; transform: scale(0.98); } 
+            100% { opacity: 1; transform: scale(1); } 
+        }
+    `;
+    document.head.appendChild(extStyle);
+
+    let currentImgIndex = -1;
+    let vImg = v.querySelector('img');
+    if (!vImg) {
+        vImg = document.createElement('img');
+        v.appendChild(vImg);
+    }
+    vImg.decoding = 'async';
+    li.decoding = 'async';
+
+    const preloadImage = (idx) => {
+        let i = (idx + imageFiles.length) % imageFiles.length;
+        new Image().src = `./img/${imageFiles[i]}`;
+    };
+
+    const showImage = (index, dir) => {
+        index = (index + imageFiles.length) % imageFiles.length;
+        currentImgIndex = index;
+        const f = imageFiles[index];
+        const imgSrc = `./img/${f}`;
+        let target;
+        
+        if (f.includes('迟来的深情')) {
+            v.style.display = 'none';
+            li.src = imgSrc;
+            lv.style.display = 'block';
+            lv.scrollTop = 0;
+            target = li;
+        } else {
+            lv.style.display = 'none';
+            vImg.src = imgSrc;
+            v.style.display = 'flex';
+            target = vImg;
+        }
+
+        target.style.animation = 'none';
+        void target.offsetWidth;
+        
+        if (dir === 'next') target.style.animation = 'slideNext 0.5s ease-out forwards';
+        else if (dir === 'prev') target.style.animation = 'slidePrev 0.5s ease-out forwards';
+        else target.style.animation = 'softZoom 0.5s ease-out forwards';
+        
+        preloadImage(index + 1);
+        preloadImage(index - 1);
+    };
+
+    let startY = 0;
+    let startTime = 0;
+
+    [v, lv].forEach(el => {
+        el.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+            startTime = Date.now();
+            isSwiping = false;
+        }, {passive: true});
+        
+        el.addEventListener('touchmove', (e) => {
+            if (Math.abs(e.touches[0].clientY - startY) > 10) {
+                isSwiping = true;
+                if (el === v && e.cancelable) e.preventDefault();
+            }
+        }, {passive: false});
+        
+        el.addEventListener('touchend', (e) => {
+            if (!isSwiping) return; 
+            
+            let diffY = startY - e.changedTouches[0].clientY;
+            let timeTaken = Date.now() - startTime;
+            
+            if (Math.abs(diffY) > 40 && timeTaken < 500) {
+                if (el === v) {
+                    showImage(currentImgIndex + (diffY > 0 ? 1 : -1), diffY > 0 ? 'next' : 'prev');
+                } else if (el === lv) {
+                    if (diffY > 0 && (lv.scrollHeight - lv.scrollTop - lv.clientHeight <= 5)) {
+                        showImage(currentImgIndex + 1, 'next');
+                    } else if (diffY < 0 && lv.scrollTop <= 5) {
+                        showImage(currentImgIndex - 1, 'prev');
+                    }
+                }
+            }
+            setTimeout(() => { isSwiping = false; }, 50);
+        });
+    });
 
     if(imageFiles.length) {
         imageFiles.forEach((f, i) => {
             const w = document.createElement('div');
             w.className = 'img-wrap';
             if(f.includes('迟来的深情')) w.classList.add('hero');
-            
             w.style.transitionDelay = `${Math.min(i * 0.03, 1)}s`;
-            
             const img = document.createElement('img');
             img.decoding = 'async';
             img.loading = 'lazy';
             img.onload = () => w.classList.add('s');
             img.src = `./img/${f}`;
+            if (img.complete) w.classList.add('s');
             
-            if (img.complete) {
-                w.classList.add('s');
-            }
-            
-            w.onclick = () => {
-                if(u.paused && !mp) u.play().catch(()=>{});
-                
-                history.pushState({modal: true}, null, '');
-
-                if(f.includes('迟来的深情')) {
-                    li.src = img.src;
-                    lv.style.display = 'block';
-                    lv.scrollTop = 0;
-                } else {
-                    v.innerHTML = '';
-                    let cloneImg = img.cloneNode();
-                    cloneImg.removeAttribute('loading');
-                    cloneImg.removeAttribute('decoding');
-                    v.appendChild(cloneImg);
-                    v.style.display = 'flex';
+            w.onclick = (e) => {
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
                 }
+                if(u.paused && !mp) u.play().catch(()=>{});
+                history.pushState({modal: true}, null, '');
+                document.body.style.overflow = 'hidden';
+                showImage(i, 'none');
             };
             w.appendChild(img);
             ct.appendChild(w);
@@ -924,7 +1016,7 @@ case 'fnx':
     random = -0.3 + Math.random();
     ret = function (x, y) {
         // 0.3=左右飘幅度；1.0=左右飘速度
-        return x + 0.4 * random - 1;
+        return x + 0.4 * random - 1.2;
     };
     break;
 case 'fny':
