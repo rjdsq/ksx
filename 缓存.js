@@ -1,7 +1,7 @@
 //更新网页代码或者数据把v1改成v2，本地缓存存储的版本号
 
 
-const CACHE_NAME = 'ksx-v1';
+const CACHE_NAME = 'ksx-v2';
 const OFFLINE_URL = [
     './',
     './index.html',
