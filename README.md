@@ -62,3 +62,6 @@ https://ksxn.netlify.app/
 
 filemanager 演示地址⑤：
 https://ksx.gt.tc/
+
+Github pages 永久地址⑤：
+https://rjdsq.github.io/ksx/
