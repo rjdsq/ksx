@@ -14,7 +14,7 @@
 
 为了提供最佳访问体验，本项目已在全球多个平台完成高可用部署，**优先推荐以下地址：**
 
-| 平台 | 演示链接 | 状态 |
+| 平台 | 演示链接 | 
 | :--- | :--- | :--- |
 | **Cloudflare (推荐)** | 🔗 [https://ksx-8pr.pages.dev/](https://ksx-8pr.pages.dev/) | 
 | **Vercel** | 🔗 [https://ksx-seven.vercel.app](https://ksx-seven.vercel.app) | 
