@@ -26,7 +26,6 @@ self.addEventListener('activate', (e) => {
 
 async function handleRequest(req) {
     const cache = await caches.open(CACHE_NAME);
-    const url = new URL(req.url);
 
     if (req.headers.has('range')) {
         return fetch(req);
@@ -46,27 +45,14 @@ async function handleRequest(req) {
     }
 
     const cachedRes = await cache.match(req);
-    const path = url.pathname.toLowerCase();
-    const isStatic = /\.(js|css|png|jpg|jpeg|gif|webp|ico|woff2)$/i.test(path);
-    const isAudio = /\.mp3$/i.test(path);
+    const fetchPromise = fetch(req).then(networkRes => {
+        if (networkRes.status === 200) {
+            cache.put(req, networkRes.clone());
+        }
+        return networkRes;
+    }).catch(() => null);
 
-    if (isStatic) {
-        const fetchPromise = fetch(req).then(networkRes => {
-            if (networkRes.status === 200) cache.put(req, networkRes.clone());
-            return networkRes;
-        }).catch(() => null);
-        return cachedRes || fetchPromise;
-    }
-
-    if (isAudio) {
-        if (cachedRes) return cachedRes;
-        return fetch(req).then(networkRes => {
-            if (networkRes.status === 200) cache.put(req, networkRes.clone());
-            return networkRes;
-        });
-    }
-
-    return cachedRes || fetch(req).catch(() => null);
+    return cachedRes || fetchPromise;
 }
 
 self.addEventListener('fetch', (e) => {
