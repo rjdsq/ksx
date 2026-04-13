@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="shortcut icon" href="./logo/favicon.ico" type="image/x-icon">
 <link rel="icon" href="./logo/favicon.ico" type="image/x-icon">
-<title>邹洪 - 阚双雪 - 温故流年 - 自我感动</title>
-<meta name="description" content="邹洪，阚双雪，春风落樱，岁月无声，那些走过的朝夕与沉默的心意，都被悄悄收进回忆相册。不必言说，不必回望，只愿这份温柔，在岁月里安静停留，成为心底最淡也最深的印记。">
-<meta property="og:title" content="邹洪 - 阚双雪 - 温故流年 - 自我感动">
-<meta property="og:description" content="邹洪，阚双雪，春风落樱，岁月无声，那些走过的朝夕与沉默的心意，都被悄悄收进回忆相册。不必言说，不必回望，只愿这份温柔，在岁月里安静停留，成为心底最淡也最深的印记。">
+<title>阚双雪 - 邹洪 - 温故流年 - 自我感动</title>
+<meta name="description" content="阚双雪，邹洪，过往朝夕，藏着满心过往。所有零碎瞬间与没说出口的心意，都收进这本回忆相册里。不问归途，不念过往，只剩这份温柔，好好留在心底。">
+<meta property="og:title" content="阚双雪 - 邹洪 - 温故流年 - 自我感动">
+<meta property="og:description" content="阚双雪，邹洪，过往朝夕，藏着满心过往。所有零碎瞬间与没说出口的心意，都收进这本回忆相册里。不问归途，不念过往，只剩这份温柔，好好留在心底。">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="温故流年">
 <meta property="og:image" content="./img/66.jpg">
@@ -20,8 +20,8 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "headline": "邹洪 - 阚双雪 - 温故流年 - 自我感动",
-  "description": "邹洪，阚双雪，春风落樱，岁月无声，那些走过的朝夕与沉默的心意，都被悄悄收进回忆相册。不必言说，不必回望，只愿这份温柔，在岁月里安静停留，成为心底最淡也最深的印记。",
+  "headline": "阚双雪 - 邹洪 - 温故流年 - 自我感动",
+  "description": "阚双雪，邹洪，过往朝夕，藏着满心过往。所有零碎瞬间与没说出口的心意，都收进这本回忆相册里。不问归途，不念过往，只剩这份温柔，好好留在心底。",
   "image": "./img/66.jpg",
   "author": {
     "@type": "Person",
@@ -662,7 +662,7 @@ const showImage = (index, dir) => {
     //上下滑动时间
     if (dir === 'next') target.style.animation = 'slideNext 0.4s ease-out forwards';
       //点击显示时间
-    else if (dir === 'prev') target.style.animation = 'slidePrev 0.3s ease-out forwards';
+    else if (dir === 'prev') target.style.animation = 'slidePrev 0.4s ease-out forwards';
     else target.style.animation = 'softZoom 0.3s ease-out forwards';
     
     preloadImage(index + 1);
@@ -820,7 +820,7 @@ renderAllPerfectly();
 </script>
 
 <script>
-//离线缓存脚本执行js文件
+//离线缓存执行脚本 执行：缓存.js
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/缓存.js').catch(() => {});
