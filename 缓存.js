@@ -1,53 +1,75 @@
-//更新网页代码或者数据把v1改成v2，本地缓存存储的版本号
-
-
-const CACHE_NAME = 'ksx-v2';
-const OFFLINE_URL = [
-    './',
-    './index.html',
-    './logo/favicon.ico'
+const CACHE_NAME = 'ksx-v3';
+const PRE_CACHE = [
+    '/',
+    '/index.html',
+    '/logo/favicon.ico',
+    '/js/樱花.js',
+    '/js/雨落.js',
+    '/js/分手时间.js',
+    '/js/水波纹.js'
 ];
 
 self.addEventListener('install', (e) => {
     e.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(OFFLINE_URL);
-        })
+        caches.open(CACHE_NAME).then(cache => cache.addAll(PRE_CACHE))
     );
     self.skipWaiting();
 });
 
 self.addEventListener('activate', (e) => {
     e.waitUntil(
-        caches.keys().then((keys) => {
-            return Promise.all(keys.map((k) => {
-                if (k !== CACHE_NAME) return caches.delete(k);
-            }));
-        })
+        caches.keys().then(keys => Promise.all(
+            keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+        )).then(() => self.clients.claim())
     );
-    self.clients.claim();
 });
 
-self.addEventListener('fetch', (e) => {
-    if (e.request.method !== 'GET') return;
+async function handleRequest(req) {
+    const cache = await caches.open(CACHE_NAME);
+    const url = new URL(req.url);
 
-    e.respondWith(
-        caches.match(e.request).then((res) => {
-            if (res) return res;
-            return fetch(e.request).then((netRes) => {
-                const url = e.request.url.toLowerCase();
-                const isResource = url.match(/\.(jpg|jpeg|png|gif|webp|mp3|ico|js|css|woff2)$/);
-                
-                if (netRes && (netRes.status === 200 || netRes.status === 0) && isResource) {
-                    const resClone = netRes.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(e.request, resClone);
-                    });
-                }
-                return netRes;
-            }).catch(() => {
-                return null;
-            });
-        })
-    );
+    if (req.headers.has('range')) {
+        return fetch(req);
+    }
+
+    if (req.mode === 'navigate') {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        try {
+            const networkRes = await fetch(req, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (networkRes.status === 200) cache.put(req, networkRes.clone());
+            return networkRes;
+        } catch (err) {
+            return (await cache.match(req)) || cache.match('/index.html');
+        }
+    }
+
+    const cachedRes = await cache.match(req);
+    const path = url.pathname.toLowerCase();
+    const isStatic = /\.(js|css|png|jpg|jpeg|gif|webp|ico|woff2)$/i.test(path);
+    const isAudio = /\.mp3$/i.test(path);
+
+    if (isStatic) {
+        const fetchPromise = fetch(req).then(networkRes => {
+            if (networkRes.status === 200) cache.put(req, networkRes.clone());
+            return networkRes;
+        }).catch(() => null);
+        return cachedRes || fetchPromise;
+    }
+
+    if (isAudio) {
+        if (cachedRes) return cachedRes;
+        return fetch(req).then(networkRes => {
+            if (networkRes.status === 200) cache.put(req, networkRes.clone());
+            return networkRes;
+        });
+    }
+
+    return cachedRes || fetch(req).catch(() => null);
+}
+
+self.addEventListener('fetch', (e) => {
+    if (e.request.method !== 'GET' || !e.request.url.startsWith(self.location.origin)) return;
+    e.respondWith(handleRequest(e.request));
 });
