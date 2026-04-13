@@ -25,6 +25,15 @@ self.addEventListener('activate', (e) => {
 });
 
 async function handleRequest(req) {
+    const hostname = self.location.hostname;
+    const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(hostname);
+    const isLocal = hostname === 'localhost' || hostname === '[::1]';
+    const noDot = !hostname.includes('.');
+
+    if (isIP || isLocal || noDot) {
+        return fetch(req);
+    }
+
     const cache = await caches.open(CACHE_NAME);
 
     if (req.headers.has('range')) {
