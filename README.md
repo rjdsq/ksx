@@ -1,4 +1,4 @@
-### 🚀 轻量级 HTML 静态页面极致之作
+### 🚀 ksx：轻量级 HTML 静态页面极致之作
 
 [![GitHub stars](https://img.shields.io/github/stars/rjdsq/ksx?style=flat-square)](https://github.com/rjdsq/ksx/stargazers)
 [![License](https://img.shields.io/github/license/rjdsq/ksx?style=flat-square)](https://github.com/rjdsq/ksx/blob/main/LICENSE)
@@ -16,11 +16,11 @@
 
 | 平台 | 演示链接 | 
 | :--- | :--- |
-| **Cloudflare (推荐)** | 🔗 [https://ksx-8pr.pages.dev/](https://ksx-8pr.pages.dev/) | 
-| **Vercel** | 🔗 [https://ksx-seven.vercel.app](https://ksx-seven.vercel.app) | 
-| **GitHub Pages** | 🔗 [https://rjdsq.github.io/ksx/](https://rjdsq.github.io/ksx/) |
-| **Netlify** | 🔗 [https://ksxn.netlify.app/](https://ksxn.netlify.app/) | 
-| **FileManager** | 🔗 [https://ksx.gt.tc/](https://ksx.gt.tc/) | 
+| **Cloudflare (推荐)** | [https://ksx-8pr.pages.dev/](https://ksx-8pr.pages.dev/) | 
+| **Vercel** | [https://ksx-seven.vercel.app](https://ksx-seven.vercel.app) | 
+| **GitHub Pages** | [https://rjdsq.github.io/ksx/](https://rjdsq.github.io/ksx/) |
+| **Netlify** | [https://ksxn.netlify.app/](https://ksxn.netlify.app/) | 
+| **FileManager** | [https://ksx.gt.tc/](https://ksx.gt.tc/) | 
 ---
 
 ### ✨ 核心优势
