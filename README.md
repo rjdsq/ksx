@@ -2,6 +2,9 @@
 
 [![GitHub stars](https://img.shields.io/github/stars/rjdsq/ksx?style=flat-square)](https://github.com/rjdsq/ksx/stargazers)
 
+[![GitHub forks](https://img.shields.io/github/forks/rjdsq/ksx?style=flat-square)](https://github.com/rjdsq/ksx/network/forks)
+
+
 > **轻量无后端，体验无上限**
 > 这是一个专为回忆相册打造的纯静态 HTML 项目。它在极致精简的体积下，完美融合了现代化的缓存机制、SEO 优化与丝滑的渲染性能，定义了静态页面的新标准。
 
