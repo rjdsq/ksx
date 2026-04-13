@@ -1,9 +1,14 @@
+---
+
 # 🚀 ksx：轻量级 HTML 静态页面极致之作
 
 [![GitHub stars](https://img.shields.io/github/stars/rjdsq/ksx?style=flat-square)](https://github.com/rjdsq/ksx/stargazers)
+[![License](https://img.shields.io/github/license/rjdsq/ksx?style=flat-square)](https://github.com/rjdsq/ksx/blob/main/LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Static%20Web-blue?style=flat-square)](https://github.com/rjdsq/ksx)
+[![Deployment](https://img.shields.io/badge/Deployment-Fast%20&%20Easy-green?style=flat-square)](https://github.com/rjdsq/ksx)
 
-> **轻量无后端，体验无上限**
-> rjdsq/ksx 是一个专为回忆相册打造的纯静态 HTML 项目。它在极致精简的体积下，完美融合了现代化的缓存机制、SEO 优化与丝滑的渲染性能，定义了静态页面的新标准。
+> **在追求轻量化、无后端、易部署的静态页面时代，rjdsq/ksx 给出了一份优秀示范。**
+> 这是一个面向个人回忆相册的纯 HTML 静态项目，无需后端、无第三方依赖，却在缓存更新、离线访问、SEO 优化、界面渲染四大维度做到了小而美、稳又快。
 
 ---
 
@@ -13,11 +18,11 @@
 
 | 平台 | 演示链接 | 状态 |
 | :--- | :--- | :--- |
-| **Cloudflare (推荐)** | 🔗 [ksx-8pr.pages.dev](https://ksx-8pr.pages.dev/) | ⚡ 全球加速 |
-| **Vercel** | 🔗 [ksx-seven.vercel.app](https://ksx-seven.vercel.app) | 🚀 极致性能 |
-| **GitHub Pages** | 🔗 [rjdsq.github.io/ksx](https://rjdsq.github.io/ksx/) | 📁 官方同步 |
-| **Netlify** | 🔗 [ksxn.netlify.app](https://ksxn.netlify.app/) | 🌐 备用地址 |
-| **FileManager** | 🔗 [ksx.gt.tc](https://ksx.gt.tc/) | 📂 备用地址 |
+| **Cloudflare (推荐)** | 🔗 [https://ksx-8pr.pages.dev/](https://ksx-8pr.pages.dev/) | ⚡ 全球加速 |
+| **Vercel** | 🔗 [https://ksx-seven.vercel.app](https://ksx-seven.vercel.app) | 🚀 极致性能 |
+| **GitHub Pages** | 🔗 [https://rjdsq.github.io/ksx/](https://rjdsq.github.io/ksx/) | 📁 官方同步 |
+| **Netlify** | 🔗 [https://ksxn.netlify.app/](https://ksxn.netlify.app/) | 🌐 备用地址 |
+| **FileManager** | 🔗 [https://ksx.gt.tc/](https://ksx.gt.tc/) | 📂 备用地址 |
 
 ---
 
@@ -64,7 +69,7 @@
 1.  **Fork** 本仓库。
 2.  将你的图片和音频放入对应目录。
 3.  通过 **GitHub Pages / Vercel / Cloudflare Pages** 关联仓库。
-4.  **发布** 你的专属静态站已全球上线。
+4.  **Done!** 你的专属静态站已全球上线。
 
 ---
 
