@@ -1,81 +1,47 @@
 ---
 
-# 🚀 ksx：轻量级 HTML 静态页面极致之作
+### 🚀 ksx: 轻量静态页极致之作
 
-[![GitHub stars](https://img.shields.io/github/stars/rjdsq/ksx?style=flat-square)](https://github.com/rjdsq/ksx/stargazers)
-[![License](https://img.shields.io/github/license/rjdsq/ksx?style=flat-square)](https://github.com/rjdsq/ksx/blob/main/LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Static%20Web-blue?style=flat-square)](https://github.com/rjdsq/ksx)
-[![Deployment](https://img.shields.io/badge/Deployment-Fast%20&%20Easy-green?style=flat-square)](https://github.com/rjdsq/ksx)
+<p align="left">
+  <img src="https://img.shields.io/github/stars/rjdsq/ksx?style=flat-square&color=ffd700" alt="stars">
+  <img src="https://img.shields.io/badge/Status-Stable-brightgreen?style=flat-square" alt="status">
+  <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="license">
+</p>
 
-> **在追求轻量化、无后端、易部署的静态页面时代，rjdsq/ksx 给出了一份优秀示范。**
-> 这是一个面向个人回忆相册的纯 HTML 静态项目，无需后端、无第三方依赖，却在缓存更新、离线访问、SEO 优化、界面渲染四大维度做到了小而美、稳又快。
-
----
-
-## 🌐 永久演示地址 (Live Demo)
-
-为了提供最佳访问体验，本项目已在全球多个平台完成高可用部署，**优先推荐以下地址：**
-
-| 平台 | 演示链接 | 状态 |
-| :--- | :--- | :--- |
-| **Cloudflare (推荐)** | 🔗 [https://ksx-8pr.pages.dev/](https://ksx-8pr.pages.dev/) | ⚡ 全球加速 |
-| **Vercel** | 🔗 [https://ksx-seven.vercel.app](https://ksx-seven.vercel.app) | 🚀 极致性能 |
-| **GitHub Pages** | 🔗 [https://rjdsq.github.io/ksx/](https://rjdsq.github.io/ksx/) | 📁 官方同步 |
-| **Netlify** | 🔗 [https://ksxn.netlify.app/](https://ksxn.netlify.app/) | 🌐 备用地址 |
-| **FileManager** | 🔗 [https://ksx.gt.tc/](https://ksx.gt.tc/) | 📂 备用地址 |
+> **轻量化、无后端、易部署。** 这是一个面向个人回忆相册的纯 HTML 静态项目。在缓存更新、离线访问、SEO 优化与界面渲染四大维度做到了极致平衡。
 
 ---
 
-## ✨ 核心优势
-
-### 🛡️ 1. 卓越的缓存与离线策略
-项目内置高效 `缓存.js`，搭配极简静态结构，实现了媲美原生 App 的访问体验：
-*   **智能缓存：** 静态资源（图片、音频、页面）本地持久化，二次访问秒开。
-*   **增量更新：** 文件改动后精准识别，不浪费多余流量。
-*   **离线可用：** 缓存成功后，在无网络环境下依然可以流畅浏览相册与播放音频。
-
-### 🔍 2. 深度 SEO 优化
-虽是纯静态页，但在搜索引擎友好度上做了大量工作：
-*   **语义化结构：** HTML 层级清晰，规范的 TDK（标题、描述、关键词）配置。
-*   **极致加载：** 无冗余脚本，首屏 LCP 表现优异，利于收录排名。
-
-### 🎨 3. 流畅的渲染艺术
-颜值与性能并非鱼和熊掌，我们全都要：
-*   **高效渲染：** 零嵌套冗余 DOM，滑动与切换如丝般顺滑。
-*   **按需加载：** 资源流式加载，确保视觉呈现不被大文件阻塞。
-*   **全端自适应：** 完美适配手机、平板与 PC，保持视觉高度一致。
+#### 🌐 演示地址 (Live Demo)
+*   **Cloudflare (首选):** [ksx-8pr.pages.dev](https://ksx-8pr.pages.dev/)
+*   **Vercel:** [ksx-seven.vercel.app](https://ksx-seven.vercel.app)
+*   **GitHub Pages:** [rjdsq.github.io/ksx](https://rjdsq.github.io/ksx/)
+*   **Netlify:** [ksxn.netlify.app](https://ksxn.netlify.app/)
+*   **FileManager:** [ksx.gt.tc](https://ksx.gt.tc/)
 
 ---
 
-## 🛠️ 项目亮点总结
-
-*   **纯粹：** 纯 HTML+JS 编写，无繁重框架，易于二次开发。
-*   **全能：** 集图片轮播、音频播放、离线缓存于一体。
-*   **零成本：** 支持 GitHub / Vercel 一键托管，无需购买服务器。
-*   **均衡：** 速度、SEO、渲染、缓存四大指标全方位无死角。
-
----
-
-## 👥 适用人群
-
-*   📸 **回忆收藏者：** 想要做一个个人相册、纪念网站。
-*   💻 **极简开发者：** 需要轻量化展示页，追求极致加载速度。
-*   🔌 **静态站爱好者：** 寻找可离线、易部署的无后端解决方案。
+#### ✨ 核心亮点
+*   **⚡ 极速缓存：** 内置 `缓存.js`。资源本地化存储，二次访问秒开，支持断网离线使用。
+*   **🔍 SEO 友好：** 纯静态语义化 HTML，爬虫抓取零压力，首屏 LCP 表现优异。
+*   **📱 流畅渲染：** 零冗余 DOM 结构，自适应多端设备，滚动切换顺滑如原生。
+*   **📦 部署零门槛：** 无需服务器，支持 GitHub/Vercel/CF 一键托管，自动更新。
 
 ---
 
-## 🚀 快速上手
-
-1.  **Fork** 本仓库。
-2.  将你的图片和音频放入对应目录。
-3.  通过 **GitHub Pages / Vercel / Cloudflare Pages** 关联仓库。
-4.  **Done!** 你的专属静态站已全球上线。
+#### 🛠️ 适用场景
+*   **个人/纪念相册：** 打造属于自己的回忆角落。
+*   **轻量展示页：** 追求极致加载速度的静态作品展示。
+*   **极简主义者：** 厌倦复杂后端架构，回归 HTML 纯粹体验。
 
 ---
 
-## 📂 项目仓库
-**GitHub 地址：** [https://github.com/rjdsq/ksx](https://github.com/rjdsq/ksx)
+#### 🚀 快速开始
+1. **Fork** [rjdsq/ksx](https://github.com/rjdsq/ksx)
+2. 放入你的图片/音频资源。
+3. 绑定 Vercel 或 Cloudflare Pages 即可自动上线。
 
-> *用心做好每一个细节，即使是小项目也能拥有专业的灵魂。*
+---
+<p align="center">发现静态之美 · 用心打造细节</p>
 
 ---
