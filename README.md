@@ -1,59 +1,79 @@
-### 🚀 ksx：轻量化 HTML 静态页极致示范
+### 🚀 ksx：轻量级 HTML 静态页面极致之作
 
-<p align="left">
-  <img src="https://img.shields.io/github/stars/rjdsq/ksx?style=flat-square&logo=github&label=Stars&color=FFD700" alt="Stars">
-  <img src="https://img.shields.io/github/forks/rjdsq/ksx?style=flat-square&logo=github&label=Forks&color=lightgrey" alt="Forks">
-  <img src="https://img.shields.io/badge/Speed-99%2B-brightgreen?style=flat-square&logo=lighthouse" alt="Speed">
-  <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License">
-</p>
+[![GitHub stars](https://img.shields.io/github/stars/rjdsq/ksx?style=flat-square)](https://github.com/rjdsq/ksx/stargazers)
+[![License](https://img.shields.io/github/license/rjdsq/ksx?style=flat-square)](https://github.com/rjdsq/ksx/blob/main/LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Static%20Web-blue?style=flat-square)](https://github.com/rjdsq/ksx)
+[![Deployment](https://img.shields.io/badge/Deployment-Fast%20&%20Easy-green?style=flat-square)](https://github.com/rjdsq/ksx)
 
-> **轻量无后端，体验无上限。** rjdsq/ksx 是一个专为回忆相册打造的纯静态 HTML 项目。它在极致精简的体积下，完美融合了现代化的缓存机制、SEO 优化与丝滑的渲染性能，定义了静态页面的新标准。
-
----
-
-#### 🌐 永久演示地址 (优先排序)
-
-| 节点 | 部署平台 | 访问链接 | 实时状态 |
-| :--- | :--- | :--- | :--- |
-| **主线路** | ⚡ **Cloudflare** | [**点击进入演示 ①**](https://ksx-8pr.pages.dev/) | `Online` 🟢 |
-| **加速线** | 🚀 **Vercel** | [点击进入演示 ②](https://ksx-seven.vercel.app) | `Stable` 🟢 |
-| **海外线** | 🌐 **Netlify** | [点击进入演示 ③](https://ksxn.netlify.app/) | `Active` 🟢 |
-| **存储线** | 📂 **FileManager** | [点击进入演示 ④](https://ksx.gt.tc/) | `Standby` 🟡 |
-| **源码线** | 📁 **GitHub Pages** | [点击进入演示 ⑤](https://rjdsq.github.io/ksx/) | `Source` 🟢 |
+> **在追求轻量化、无后端、易部署的静态页面时代，rjdsq/ksx 给出了一份优秀示范。**
+> 这是一个面向个人回忆相册的纯 HTML 静态项目，无需后端、无第三方依赖，却在缓存更新、离线访问、SEO 优化、界面渲染四大维度做到了小而美、稳又快。
 
 ---
 
-#### ✨ 核心特性
+## 🌐 永久演示地址 (Live Demo)
 
-*   **🛡️ 智能离线策略**  
-    内置 `缓存.js` 方案。资源（图片、音频）首次加载后自动持久化，支持**断网离线访问**，二次开启实现秒级加载。
-*   **🔍 极致 SEO 表现**  
-    采用语义化 HTML 结构，无任何冗余脚本阻塞。首屏 LCP 极佳，爬虫友好，让个人内容更易被搜索收录。
-*   **🎨 丝滑渲染体验**  
-    完全基于原生 JS 与极简 DOM。无论是图片轮播还是音频播放，在手机或 PC 端均能保持高度一致的流畅度。
-*   **⚙️ 部署零门槛**  
-    无数据库、无后端环境需求。支持 GitHub Action 自动化部署，全球 CDN 加速，真正做到开箱即用。
+为了提供最佳访问体验，本项目已在全球多个平台完成高可用部署，**优先推荐以下地址：**
 
----
-
-#### 🛠️ 适用场景
-
-*   **个人回忆相册：** 永久留存珍贵瞬间，无需维护服务器。
-*   **轻量展示页面：** 追求极致速度与极简风格的展示作品。
-*   **静态站点参考：** 学习如何将 HTML 静态页做到极致性能。
+| 平台 | 演示链接 | 状态 |
+| :--- | :--- | :--- |
+| **Cloudflare (推荐)** | 🔗 [https://ksx-8pr.pages.dev/](https://ksx-8pr.pages.dev/) | ⚡ 全球加速 |
+| **Vercel** | 🔗 [https://ksx-seven.vercel.app](https://ksx-seven.vercel.app) | 🚀 极致性能 |
+| **GitHub Pages** | 🔗 [https://rjdsq.github.io/ksx/](https://rjdsq.github.io/ksx/) | 📁 官方同步 |
+| **Netlify** | 🔗 [https://ksxn.netlify.app/](https://ksxn.netlify.app/) | 🌐 备用地址 |
+| **FileManager** | 🔗 [https://ksx.gt.tc/](https://ksx.gt.tc/) | 📂 备用地址 |
 
 ---
 
-#### 🚀 快速上手
+## ✨ 核心优势
 
-1.  **Clone / Fork** 项目代码到本地或你的仓库。
-2.  替换 `assets` 目录下的图片与音频资源。
-3.  推送到 GitHub，通过 Vercel 或 Cloudflare Pages 关联即可上线。
+### 🛡️ 1. 卓越的缓存与离线策略
+项目内置高效 `缓存.js`，搭配极简静态结构，实现了媲美原生 App 的访问体验：
+*   **智能缓存：** 静态资源（图片、音频、页面）本地持久化，二次访问秒开。
+*   **增量更新：** 文件改动后精准识别，不浪费多余流量。
+*   **离线可用：** 缓存成功后，在无网络环境下依然可以流畅浏览相册与播放音频。
+
+### 🔍 2. 深度 SEO 优化
+虽是纯静态页，但在搜索引擎友好度上做了大量工作：
+*   **语义化结构：** HTML 层级清晰，规范的 TDK（标题、描述、关键词）配置。
+*   **极致加载：** 无冗余脚本，首屏 LCP 表现优异，利于收录排名。
+
+### 🎨 3. 流畅的渲染艺术
+颜值与性能并非鱼和熊掌，我们全都要：
+*   **高效渲染：** 零嵌套冗余 DOM，滑动与切换如丝般顺滑。
+*   **按需加载：** 资源流式加载，确保视觉呈现不被大文件阻塞。
+*   **全端自适应：** 完美适配手机、平板与 PC，保持视觉高度一致。
 
 ---
 
-**项目地址：** [https://github.com/rjdsq/ksx](https://github.com/rjdsq/ksx)
+## 🛠️ 项目亮点总结
 
-<p align="center">
-  <i>发现静态之美，回归纯粹体验</i>
-</p>
+*   **纯粹：** 纯 HTML+JS 编写，无繁重框架，易于二次开发。
+*   **全能：** 集图片轮播、音频播放、离线缓存于一体。
+*   **零成本：** 支持 GitHub / Vercel 一键托管，无需购买服务器。
+*   **均衡：** 速度、SEO、渲染、缓存四大指标全方位无死角。
+
+---
+
+## 👥 适用人群
+
+*   📸 **回忆收藏者：** 想要做一个个人相册、纪念网站。
+*   💻 **极简开发者：** 需要轻量化展示页，追求极致加载速度。
+*   🔌 **静态站爱好者：** 寻找可离线、易部署的无后端解决方案。
+
+---
+
+## 🚀 快速上手
+
+1.  **Fork** 本仓库。
+2.  将你的图片和音频放入对应目录。
+3.  通过 **GitHub Pages / Vercel / Cloudflare Pages** 关联仓库。
+4.  **Done!** 你的专属静态站已全球上线。
+
+---
+
+## 📂 项目仓库
+**GitHub 地址：** [https://github.com/rjdsq/ksx](https://github.com/rjdsq/ksx)
+
+> *用心做好每一个细节，即使是小项目也能拥有专业的灵魂。*
+
+---
