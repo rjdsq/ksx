@@ -144,12 +144,13 @@ case 'fnr':
             sakura.draw(cxt);
             sakuraList.push(sakura);
         }
-        stop = requestAnimationFrame(function () {
-            cxt.clearRect(0, 0, canvas.width, canvas.height);
-            sakuraList.update();
-            sakuraList.draw(cxt);
-            stop = requestAnimationFrame(arguments.callee);
-        })
+        function tick() {
+    cxt.clearRect(0, 0, canvas.width, canvas.height);
+    sakuraList.update();
+    sakuraList.draw(cxt);
+    stop = requestAnimationFrame(tick);
+}
+stop = requestAnimationFrame(tick);
     }
 
     window.onresize = function () {
