@@ -47,7 +47,9 @@
  
 如果你也想要无后端、快加载、支持离线、SEO 友好、渲染流畅的静态站点，rjdsq/ksx 非常值得参考与复用。它证明：好的体验，不一定要复杂架构，用心做好缓存、结构与细节，小项目也能很专业。
  
-项目地址：https://github.com/rjdsq/ksx
+项目地址：
+https://github.com/rjdsq/ksx
+
 
 Cloudflare 永久演示地址①：
 https://ksx-8pr.pages.dev/
@@ -55,7 +57,8 @@ https://ksx-8pr.pages.dev/
 vercel 永久演示地址②：
 https://ksx-seven.vercel.app
 
-netlify 演示地址③：https://ksxn.netlify.app/
+netlify 演示地址③：
+https://ksxn.netlify.app/
 
 filemanager 演示地址⑤：
 https://ksx.gt.tc/
