@@ -1,4 +1,4 @@
-### 🚀 ksx：轻量级 HTML 静态页面极致之作
+### 🚀 轻量级 HTML 静态页面极致之作
 
 [![GitHub stars](https://img.shields.io/github/stars/rjdsq/ksx?style=flat-square)](https://github.com/rjdsq/ksx/stargazers)
 [![License](https://img.shields.io/github/license/rjdsq/ksx?style=flat-square)](https://github.com/rjdsq/ksx/blob/main/LICENSE)
