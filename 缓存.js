@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ksx-v5';
+const CACHE_NAME = 'ksx-v4';
 const PRE_CACHE = [
     '/',
     '/index.html',
@@ -38,10 +38,8 @@ async function handleRequest(req) {
 
     const cache = await caches.open(CACHE_NAME);
 
-    // 分片请求直接放行
     if (req.headers.has('range')) return fetch(req);
 
-    // 页面导航：网络优先，3s超时兜底缓存
     if (req.mode === 'navigate') {
         const controller = new AbortController();
         const t = setTimeout(() => controller.abort(), 3000);
@@ -55,7 +53,15 @@ async function handleRequest(req) {
         }
     }
 
-    // 静态资源：缓存优先，后台更新
+    const isMediaCacheFirst = req.destination === 'image' || req.destination === 'audio';
+    if(isMediaCacheFirst){
+        const cached = await cache.match(req);
+        if(cached) return cached;
+        const netRes = await fetch(req);
+        if(netRes.ok) cache.put(req,netRes.clone());
+        return netRes;
+    }
+
     const cached = await cache.match(req);
     const netFetch = fetch(req)
         .then(res => {
