@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ksx-v11';
+const CACHE_NAME = 'ksx-v12';
 const PRE_CACHE = [
     '/',
     '/index.html',
