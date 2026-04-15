@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>控制台 - 温故流年</title>
+<style>
+:root { --bg: #050505; --card: #121212; --accent: #d4af37; --text: #e6e1d8; --dim: #858585; --danger: #ff4757; --safe: #2ed573; }
+* { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: sans-serif; overflow: hidden; height: 100vh; width: 100vw; }
+body > canvas:not(#cvs) { z-index: 9999 !important; pointer-events: none !important; position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; }
+
+.view { display: none; flex-direction: column; height: 100%; }
+.view.active { display: flex; }
+
+#v-login { align-items: center; justify-content: center; padding: 20px; }
+.login-box { width: 100%; max-width: 320px; text-align: center; background: var(--card); padding: 30px 20px; border-radius: 20px; border: 1px solid #1a1a1a; }
+.login-box svg { width: 50px; height: 50px; color: var(--accent); margin-bottom: 20px; }
+
+header { padding: 45px 20px 15px; display: flex; justify-content: space-between; align-items: flex-end; background: #000; border-bottom: 1px solid #1a1a1a; }
+header h1 { font-size: 20px; margin: 0; font-weight: 500; }
+.content { flex: 1; overflow-y: auto; padding: 15px 15px 100px; position: relative; }
+
+.panel { display: none; }
+.panel.active { display: block; }
+
+input, textarea { width: 100%; background: #0a0a0a; border: 1px solid #222; border-radius: 10px; padding: 14px; color: #fff; font-size: 14px; }
+button { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--accent); color: #000; font-weight: bold; font-size: 15px; cursor: pointer; transition: 0.3s; }
+button:disabled { opacity: 0.5; pointer-events: none; }
+
+.fab { position: fixed; bottom: 85px; right: 20px; width: 56px; height: 56px; background: var(--accent); border-radius: 28px; display: flex; align-items: center; justify-content: center; color: #000; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4); z-index: 100; transition: transform 0.2s; }
+.fab:active { transform: scale(0.9); }
+.fab svg { width: 22px; height: 22px; }
+
+.img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.img-item { aspect-ratio: 1; background: #111; border-radius: 8px; position: relative; overflow: hidden; border: 1px solid #222; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; transition: transform 0.2s, opacity 0.2s; }
+.img-item img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.img-mask { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.9)); color: #fff; font-size: 11px; padding: 15px 5px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+.img-item.sel { border: 2px solid var(--safe); opacity: 0.7; }
+
+.audio-item { display: flex; align-items: center; position: relative; padding: 18px 15px; background: var(--card); border-radius: 12px; margin-bottom: 8px; border: 1px solid #1a1a1a; transition: all 0.3s; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.audio-item.playing { border-color: var(--accent); background: rgba(212,175,55,0.08); box-shadow: 0 0 10px rgba(212,175,55,0.1); }
+.audio-info { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 15px; pointer-events: none; }
+.play-icon { position: absolute; right: 15px; width: 18px; height: 18px; color: var(--accent); display: none; pointer-events: none; }
+.audio-item.playing .play-icon { display: block; }
+
+.pressing { transform: scale(0.93); opacity: 0.7; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);  }
+.sort-mode .img-item, .sort-mode .audio-item { border: 1px dashed var(--accent); }
+
+.plg-item { display: flex; justify-content: space-between; align-items: center; padding: 18px; background: var(--card); border-radius: 12px; margin-bottom: 10px; }
+.plg-name { flex: 1; font-size: 15px; padding: 5px 0; color: var(--text); }
+.plg-previewing { color: var(--safe) !important; font-weight: bold; }
+
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 25px; }
+.modal-content { background: var(--card); width: 100%; border-radius: 20px; padding: 20px; border: 1px solid #333; max-height: 80vh; overflow-y: auto; }
+.modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+.btn-cancel { background: #222; color: #fff; }
+.btn-danger { background: #222; color: var(--danger); border: 1px solid var(--danger); }
+
+.switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; inset: 0; background-color: #333; transition: .3s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--accent); }
+input:checked + .slider:before { transform: translateX(20px); }
+
+nav { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #1a1a1a; padding-bottom: env(safe-area-inset-bottom); z-index: 50; }
+.nav-btn { color: var(--dim); display: flex; flex-direction: column; align-items: center; font-size: 10px; cursor: pointer; width: 20%; }
+.nav-btn.active { color: var(--accent); }
+.nav-btn svg { width: 22px; height: 22px; margin-bottom: 4px; }
+
+.toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #000; padding: 12px 20px; border-radius: 30px; font-size: 13px; font-weight: bold; opacity: 0; transition: 0.3s; pointer-events: none; z-index: 2000; display: flex; align-items: center; gap: 8px; width: max-content; max-width: 80%; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3); }
+.toast.show { opacity: 1; }
+.spinner { animation: spin 1s linear infinite; display: none; width: 16px; height: 16px; }
+.toast.loading .spinner { display: block; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+.refresh-bar { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: var(--safe); color: #000; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: bold; z-index: 3000; display: none; align-items: center; box-shadow: 0 4px 15px rgba(46,213,115,0.4); }
+.refresh-bar button { margin: 0 0 0 10px; padding: 6px 12px; font-size: 12px; background: #000; color: #fff; border-radius: 10px; width: auto; border: none; }
+.refresh-bar.show { display: flex; }
+
+.bs-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1400; display: none; }
+.bs-overlay.show { display: block; }
+.bs-menu { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 10px 20px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform 0.3s; z-index: 1500; box-shadow: 0 -5px 20px rgba(0,0,0,0.8); }
+.bs-menu.show { transform: translateY(0); }
+.bs-item { padding: 18px 0; border-bottom: 1px solid #1a1a1a; font-size: 15px; text-align: center; }
+.bs-item:last-child { border-bottom: none; color: var(--dim); border-top: 6px solid #000; }
+
+.up-item { display: flex; align-items: center; background: #111; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+.up-item input { margin: 0; border: none; background: transparent; padding: 5px; flex: 1; }
+
+.multi-bar { position: fixed; bottom: 65px; left: 0; width: 100%; background: var(--card); border-top: 1px solid #222; display: none; justify-content: space-around; padding: 10px; z-index: 90; }
+.multi-bar button { margin: 0; padding: 10px; width: 45%; font-size: 14px; border-radius: 12px; }
+
+.custom-select { position: relative; width: 100%; margin-top: 0; }
+.select-selected { background: #0a0a0a; border: 1px solid #222; border-radius: 10px; padding: 14px; color: #fff; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.select-selected:after { content: "▼"; font-size: 12px; color: var(--dim); }
+.select-items { position: absolute; background: #111; border: 1px solid #333; border-radius: 10px; top: 100%; left: 0; right: 0; z-index: 99; display: none; max-height: 220px; overflow-y: auto; margin-top: 5px; box-shadow: 0 10px 20px rgba(0,0,0,0.8); }
+.select-items.show { display: block; }
+.select-items div { padding: 14px; cursor: pointer; border-bottom: 1px solid #222; font-size: 14px; }
+.select-items div:last-child { border-bottom: none; }
+.layout-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-top: 0; }
+.layout-inputs input { text-align: center; padding: 14px 5px; }
+
+.action-bar { display: none; width: 100%; text-align: right; margin-top: 8px; }
+.action-bar button { display: inline-block !important; width: auto !important; min-width: 70px !important; padding: 8px 16px !important; margin: 0 0 0 12px !important; font-size: 13px !important; border-radius: 8px !important; }
+.btn-cancel-inline { background: #2a2a2a !important; color: #e6e1d8 !important; border: 1px solid #444 !important; }
+.btn-save-inline { background: var(--safe) !important; color: #000 !important; box-shadow: 0 4px 10px rgba(46,213,115,0.3) !important; border: none !important; }
+
+
+.up-pos-box { display: none; align-items: center; justify-content: space-between; margin-top: 10px; padding: 12px; background: #0a0a0a; border-radius: 10px; border: 1px solid #1a1a1a; }
+.up-pos-box span { font-size: 13px; color: var(--dim); }
+.pos-btns { display: flex; background: #1a1a1a; border-radius: 8px; padding: 2px; }
+.pos-btn { padding: 5px 12px; font-size: 12px; border-radius: 6px; cursor: pointer; color: var(--dim); transition: 0.2s; }
+.pos-btn.active { background: var(--accent); color: #000; font-weight: bold; }
+
+</style>
+</head>
+<body>
+
+<div id="v-login" class="view active">
+    <div class="login-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        <h2 style="margin: 0 0 20px; font-weight: 300;">温故流年系统</h2>
+        <input type="password" id="tk-in" placeholder="输入 GitHub 令牌" style="margin-top:0;">
+        <button id="btn-login" onclick="handleLogin()" style="margin-top:20px;">安全登录</button>
+    </div>
+</div>
+
+<div id="v-app" class="view">
+    <header>
+        <h1 id="h-title">图库</h1>
+        <svg onclick="fetchCloudData(false, true)" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--accent);cursor:pointer;"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+    </header>
+
+    <main class="content">
+        <div id="p-img" class="panel active">
+            <div class="img-grid" id="img-list"></div>
+        </div>
+
+        <div id="p-audio" class="panel">
+            <div id="audio-list"></div>
+        </div>
+        
+        <div id="p-plg" class="panel">
+            <div style="font-size:12px;color:var(--dim);margin-bottom:15px;">点击名称可预览特效，再次点击关闭。</div>
+            <div id="plg-list"></div>
+        </div>
+
+        <div id="p-disabled" class="panel">
+            <div style="font-size:12px;color:var(--dim);margin-bottom:10px;">图片素材</div>
+            <div class="img-grid" id="dis-img-list" style="margin-bottom:25px;"></div>
+            <div style="font-size:12px;color:var(--dim);margin-bottom:10px;">音频素材</div>
+            <div id="dis-audio-list"></div>
+            <div class="fab" onclick="openBsMenu('m-uptype')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></div>
+        </div>
+
+        <div id="p-manage" class="panel">
+    <div style="font-size:12px; color:var(--dim); margin-bottom:5px;">管理目标仓库</div>
+    <div class="custom-select">
+        <div class="select-selected" id="repo-selected" onclick="toggleSelect()">读取中...</div>
+        <div class="select-items" id="repo-options"></div>
+    </div>
+
+    <div style="font-size:12px; color:var(--dim); margin:15px 0 5px;">网站名称</div>
+    <input type="text" id="site-name" style="margin-top:0;" oninput="checkChange('site-name', 'act-name')">
+    <div class="action-bar" id="act-name">
+        <button class="btn-cancel-inline" onclick="cancelChange('site-name', 'act-name')">取消</button>
+        <button class="btn-save-inline" onclick="saveField('name')">保存</button>
+    </div>
+
+    <div style="font-size:12px; color:var(--dim); margin:15px 0 5px;">网站介绍</div>
+    <textarea id="site-intro" rows="5" style="margin-top:0; line-height:1.6; min-height:100px;" oninput="checkChange('site-intro', 'act-intro')"></textarea>
+    <div class="action-bar" id="act-intro">
+        <button class="btn-cancel-inline" onclick="cancelChange('site-intro', 'act-intro')">取消</button>
+        <button class="btn-save-inline" onclick="saveField('intro')">保存</button>
+    </div>
+
+    <div style="font-size:12px; color:var(--dim); margin:15px 0 5px;">字母</div>
+    <input type="text" id="site-ui-title" style="margin-top:0;" oninput="checkChange('site-ui-title', 'act-ui-title')">
+    <div class="action-bar" id="act-ui-title">
+        <button class="btn-cancel-inline" onclick="cancelChange('site-ui-title', 'act-ui-title')">取消</button>
+        <button class="btn-save-inline" onclick="saveField('ui-title')">保存</button>
+    </div>
+
+    <div style="font-size:12px; color:var(--dim); margin:15px 0 5px;">标题</div>
+    <input type="text" id="site-ui-sub" style="margin-top:0;" oninput="checkChange('site-ui-sub', 'act-ui-sub')">
+    <div class="action-bar" id="act-ui-sub">
+        <button class="btn-cancel-inline" onclick="cancelChange('site-ui-sub', 'act-ui-sub')">取消</button>
+        <button class="btn-save-inline" onclick="saveField('ui-sub')">保存</button>
+    </div>
+
+    <div style="font-size:12px; color:var(--dim); margin:15px 0 5px;">图片列数 (手机默认 / 手机切换 / PC默认 / PC切换)</div>
+    <div class="layout-inputs">
+        <input type="number" id="col-md" placeholder="手默" oninput="checkLayoutChange()">
+        <input type="number" id="col-mt" placeholder="手切" oninput="checkLayoutChange()">
+        <input type="number" id="col-pd" placeholder="P默" oninput="checkLayoutChange()">
+        <input type="number" id="col-pt" placeholder="P切" oninput="checkLayoutChange()">
+    </div>
+    <div class="action-bar" id="act-layout">
+        <button class="btn-cancel-inline" onclick="cancelLayoutChange()">取消</button>
+        <button class="btn-save-inline" onclick="saveField('layout')">保存</button>
+    </div>
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:30px; padding:15px; background:var(--card); border-radius:10px;">
+        <div>
+            <div style="font-size:14px; margin-bottom:4px;">前端缓存</div>
+            <div style="font-size:11px; color:var(--dim);">启用网站缓存.js</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="switch-cache" onchange="toggleCache(this)"><span class="slider"></span></label>
+    </div>
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; padding:15px; background:var(--card); border-radius:10px;">
+        <span style="font-size:14px;">记住密码</span>
+        <label class="switch"><input type="checkbox" id="switch-rem" onchange="toggleRem(this)"><span class="slider"></span></label>
+    </div>
+     
+    <button onclick="safeAction('同步库文件', '将根据文件夹 img mp3 js 内实际文件校准数据，清理不存在的记录并同步文件夹内资源', syncFoldersToIndex)" style="background:var(--safe); color:#000; margin-top:30px;">同步库文件</button>
+
+<button onclick="safeAction('退出', '确认退出？', logout)" style="background:transparent; color:var(--danger); border:1px solid var(--danger); margin-top:15px;">退出登录</button>
+
+
+
+</div>
+
+
+    </main>
+
+    <div class="multi-bar" id="multi-bar">
+        <button class="btn-cancel" onclick="cancelMulti()">取消</button>
+        <button onclick="safeAction('移至素材', '选中的文件将移出首页，确认操作？', doMultiDisable)" style="background:var(--accent);color:#000;">移至素材</button>
+    </div>
+    <div class="multi-bar" id="sort-bar">
+        <button class="btn-cancel" onclick="cancelSort()">取消</button>
+        <button onclick="commitSort()" style="background:var(--safe);color:#000;">保存排序</button>
+    </div>
+
+    <nav>
+        <div class="nav-btn active" onclick="tab('p-img', this, '图库')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg><span>图片</span></div>
+        <div class="nav-btn" onclick="tab('p-audio', this, '音频库')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg><span>音频</span></div>
+        <div class="nav-btn" onclick="tab('p-plg', this, '插件')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg><span>插件</span></div>
+        <div class="nav-btn" onclick="tab('p-disabled', this, '素材库')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><span>素材</span></div>
+        <div class="nav-btn" onclick="tab('p-manage', this, '网站管理')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span>设置</span></div>
+    </nav>
+</div>
+
+<div id="bs-overlay" class="bs-overlay" onclick="clsBs()"></div>
+
+<div id="m-confirm" class="modal">
+    <div class="modal-content">
+        <h3 id="c-title" style="margin:0 0 15px; font-size:16px;">确认操作</h3>
+        <p id="c-desc" style="font-size:13px; color:var(--dim); line-height:1.5;"></p>
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="cls('m-confirm')">取消</button>
+            <button id="c-btn" style="background:var(--accent); color:#000;" onclick="execConfirm()">确定</button>
+        </div>
+    </div>
+</div>
+
+<div id="m-uptype" class="bs-menu">
+    <div class="bs-item" onclick="clsBs();openUpload('img')">上传图片</div>
+    <div class="bs-item" onclick="clsBs();openUpload('audio')">上传音频</div>
+    <div class="bs-item" onclick="clsBs()">取消</div>
+</div>
+
+<div id="bs-menu" class="bs-menu"></div>
+
+<div id="m-up" class="modal">
+    <div class="modal-content">
+        <h3 style="margin:0 0 15px; font-size:16px;">待上传文件</h3>
+        <div id="up-list" style="max-height:50vh; overflow-y:auto;"></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; padding:10px 0;">
+            <span style="font-size:14px; color:var(--dim);">发布到网站</span>
+            <label class="switch"><input type="checkbox" id="up-target" onchange="toggleUpPos(this.checked)"><span class="slider"></span></label>
+        </div>
+        <div id="up-pos-ctrl" class="up-pos-box">
+            <span>发布位置</span>
+            <div class="pos-btns">
+                <div id="pos-start" class="pos-btn active" onclick="setUpPos('start')">首部</div>
+                <div id="pos-end" class="pos-btn" onclick="setUpPos('end')">尾部</div>
+            </div>
+        </div>
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="document.getElementById('m-up').style.display='none'">取消</button>
+            <button onclick="commitUp()">上传</button>
+
+        </div>
+    </div>
+</div>
+
+
+<div id="m-rename" class="modal">
+    <div class="modal-content">
+        <h3 style="margin:0 0 15px; font-size:16px;">重命名文件</h3>
+        <input type="text" id="rn-name" style="margin-top:0;">
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="document.getElementById('m-rename').style.display='none'">取消</button>
+            <button onclick="commitRename()">确认</button>
+        </div>
+    </div>
+</div>
+
+<div id="refresh-toast" class="refresh-bar">
+    <span>发现新内容</span>
+    <button onclick="location.reload()">点击刷新</button>
+</div>
+
+<div id="toast" class="toast">
+    <svg class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>
+    <span id="toast-txt"></span>
+</div>
+
+
+<div id="m-multi-pub" class="modal">
+    <div class="modal-content">
+        <h3 style="margin:0 0 15px; font-size:16px;">发布到网站</h3>
+        <p style="font-size:13px; color:var(--dim); line-height:1.5;">请选择选中的文件在首页的显示位置：</p>
+        <div class="modal-btns">
+            <button style="background:#222; color:#fff;" onclick="doMultiEnable('end')">发布到尾部</button>
+            <button style="background:var(--safe); color:#000;" onclick="doMultiEnable('start')">发布到首部</button>
+        </div>
+        <button class="btn-cancel" style="margin-top:10px;width:100%;" onclick="cls('m-multi-pub')">取消</button>
+    </div>
+</div>
+
+<script>
+var remFlag = localStorage.getItem('ksx_rem') !== 'false';
+var tk = remFlag ? (localStorage.getItem('gt') || sessionStorage.getItem('gt')) : sessionStorage.getItem('gt');
+var repo = localStorage.getItem('gr') || '';
+
+var idxSha = '', idxHtml = '';
+var activeImgs = [], activeAudio = [];
+var allImgs = [], allAudio = [];
+var cloudHash = localStorage.getItem('ksx_cache_hash') || '';
+
+var curType, curName, curSha, curPath, curIsActive;
+var upQueue = [];
+var multiMode = false, selItems = [];
+var sortMode = false, sortDirty = false, curSortTab = '';
+var previewedPlgs = {};
+var globalConfirmAction = null;
+
+var audioObj = new Audio(), playPath = '';
+var dragSrcEl = null, dragGhost = null, dragListClass = '';
+var isDragging = false;
+var isLongPress = false, longT;
+var startX = 0, startY = 0;
+var pressingEl = null;
+
+var cacheRe = /()?/;
+
+document.addEventListener('click', function(e) {
+    var sel = document.getElementById('repo-options');
+    if(sel && !e.target.closest('.custom-select')) sel.classList.remove('show');
+});
+
+function msg(text, isLoading) { 
+    var t = document.getElementById('toast'); 
+    document.getElementById('toast-txt').innerText = text; 
+    if(isLoading) t.classList.add('loading'); else t.classList.remove('loading');
+    t.classList.add('show'); 
+    if(!isLoading) setTimeout(function(){ t.classList.remove('show'); }, 2500); 
+}
+function hideMsg() { document.getElementById('toast').classList.remove('show'); }
+function bD(s) { return decodeURIComponent(escape(atob(s))); }
+function bE(s) { return btoa(unescape(encodeURIComponent(s))); }
+
+function clsAll() {
+    clsBs();
+    document.querySelectorAll('.modal').forEach(function(el){ el.style.display='none'; });
+    cancelMulti();
+    cancelSort();
+}
+
+function safeAction(title, desc, actionFn) {
+    clsBs();
+    document.getElementById('c-title').innerText = title;
+    document.getElementById('c-desc').innerText = desc;
+    globalConfirmAction = actionFn;
+    document.getElementById('m-confirm').style.display = 'flex';
+}
+function execConfirm() {
+    document.getElementById('m-confirm').style.display = 'none';
+    if(globalConfirmAction) { globalConfirmAction(); globalConfirmAction = null; }
+}
+
+function bumpCacheVer() {
+    var encPath = encodeURIComponent('缓存.js');
+    api('/contents/' + encPath).then(function(r){
+        var c = bD(r.content);
+        var updated = false;
+        c = c.replace(/((?:CACHE_NAME|cacheName|VERSION|version)\s*=\s*['"][^'"]*?(?:v|V)?)(\d+)(['"])/g, function(m, p1, p2, p3) {
+            updated = true; return p1 + (parseInt(p2) + 1) + p3;
+        });
+        if(!updated) {
+            c = c.replace(/(['"][^'"]*?(?:v|V))(\d+)(['"])/, function(m, p1, p2, p3) {
+                updated = true; return p1 + (parseInt(p2) + 1) + p3;
+            });
+        }
+        if(updated) api('/contents/' + encPath, 'PUT', { message: 'Bump cache version', content: bE(c), sha: r.sha });
+    }).catch(function(){});
+}
+
+function api(p, m, b) {
+    var o = { method: m || 'GET', headers: { 'Authorization': 'token ' + tk, 'Accept': 'application/vnd.github.v3+json' } };
+    if(b) o.body = JSON.stringify(b);
+    var targetRepo = repo || 'rjdsq/ksx';
+    return fetch(p.indexOf('/user')===0 ? 'https://api.github.com' + p : 'https://api.github.com/repos/' + targetRepo + p, o).then(function(r) { 
+        if(!r.ok) throw r; 
+        return r.status !== 204 ? r.json() : null; 
+    });
+}
+
+
+function handleLogin() {
+    var v = document.getElementById('tk-in').value.trim();
+    if(!v) return msg('令牌不可为空');
+    tk = v;
+    document.getElementById('btn-login').innerText = '验证中...';
+    api('/user').then(function() {
+        if(remFlag) localStorage.setItem('gt', tk); else sessionStorage.setItem('gt', tk);
+        document.getElementById('v-login').classList.remove('active');
+        document.getElementById('v-app').classList.add('active');
+        loadData();
+    }).catch(function() { msg('验证失败，令牌错误'); tk=''; document.getElementById('btn-login').innerText = '安全登录'; });
+}
+
+function logout() { localStorage.removeItem('gt'); sessionStorage.removeItem('gt'); localStorage.removeItem('ksx_cached_data'); location.reload(); }
+function toggleRem(cb) { remFlag = cb.checked; localStorage.setItem('ksx_rem', remFlag); if(remFlag && tk) localStorage.setItem('gt', tk); else localStorage.removeItem('gt'); }
+
+function toggleSelect() { document.getElementById('repo-options').classList.toggle('show'); }
+function selectRepo(val, text) {
+    document.getElementById('repo-selected').innerText = text;
+    document.getElementById('repo-options').classList.remove('show');
+    if(repo !== val) {
+        repo = val; localStorage.setItem('gr', repo);
+        localStorage.removeItem('ksx_cached_data'); cloudHash = '';
+        loadData();
+    }
+}
+
+function fetchRepos() {
+    api('/user/repos?per_page=100&sort=updated').then(function(rs) {
+        var sel = document.getElementById('repo-options');
+        sel.innerHTML = '';
+        var found = false;
+        for(var i=0; i<rs.length; i++) {
+            var div = document.createElement('div');
+            div.innerText = rs[i].name;
+            div.setAttribute('data-val', rs[i].full_name);
+            div.onclick = function() { selectRepo(this.getAttribute('data-val'), this.innerText); };
+            if(rs[i].full_name === repo) { found = true; document.getElementById('repo-selected').innerText = rs[i].name; }
+            sel.appendChild(div);
+        }
+        if(!found && repo) {
+            var div2 = document.createElement('div');
+            var shortN = repo.split('/')[1] || repo;
+            div2.innerText = shortN; div2.setAttribute('data-val', repo);
+            div2.onclick = function() { selectRepo(this.getAttribute('data-val'), this.innerText); };
+            sel.insertBefore(div2, sel.firstChild);
+            document.getElementById('repo-selected').innerText = shortN;
+        }
+        if(!repo && rs.length > 0) {
+            repo = rs[0].full_name; localStorage.setItem('gr', repo);
+            document.getElementById('repo-selected').innerText = rs[0].name;
+        }
+    }).catch(function(){});
+}
+
+function loadData() {
+    document.getElementById('switch-rem').checked = remFlag;
+    fetchRepos();
+    var localData = localStorage.getItem('ksx_cached_data');
+    if (localData) {
+        try {
+            var d = JSON.parse(localData);
+            idxSha = d.idxSha; idxHtml = d.idxHtml;
+            allImgs = d.allImgs; allAudio = d.allAudio;
+            extractAndRender();
+        } catch(e){}
+    }
+    fetchCloudData(!!localData, false);
+    autoRestorePreviews();
+}
+
+
+function escapeReg(s) { 
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
+}
+
+
+function openRename() {
+    clsBs();
+    var p = curName.split('.');
+    p.pop();
+    document.getElementById('rn-name').value = p.join('.');
+    document.getElementById('m-rename').style.display='flex';
+}
+
+function commitRename() {
+    var p = curName.split('.');
+    var ext = '.' + p.pop();
+    var inputVal = document.getElementById('rn-name').value.trim();
+
+    if (inputVal.slice(-ext.length) === ext) {
+        inputVal = inputVal.slice(0, -ext.length);
+    }
+
+    var nN = inputVal + ext;
+    if(nN === curName) return document.getElementById('m-rename').style.display='none';
+
+    document.getElementById('m-rename').style.display='none';
+    msg('读取中...', true);
+
+    var fld = curType === 'img' ? 'img' : 'mp3';
+    var targetF = findFile(curType === 'img' ? allImgs : allAudio, curName);
+    
+    if(!targetF) return msg('文件丢失');
+
+    fetch(targetF.download_url).then(function(res) {
+        return res.blob();
+    }).then(function(blob) {
+        return new Promise(function(resolve, reject) {
+            var fr = new FileReader();
+            fr.onload = function(e) { resolve(e.target.result.split(',')[1]); };
+            fr.onerror = reject;
+            fr.readAsDataURL(blob);
+        });
+    }).then(function(b64) {
+        return api('/contents/' + fld + '/' + nN, 'PUT', { message: 'Rn ' + nN, content: b64 });
+    }).then(function() {
+        return api('/contents/' + curPath, 'DELETE', { message: 'Del ' + curName, sha: curSha });
+    }).then(function() {
+        var arr = curType === 'img' ? activeImgs : activeAudio;
+        var ix = arr.indexOf(curName);
+        if(ix !== -1) arr[ix] = nN;
+        return saveIdx(true);
+    }).then(function() {
+        msg('已重命名');
+        loadData();
+    }).catch(function() {
+        msg('重命名失败');
+    });
+}
+
+
+function fetchCloudData(isSilent) {
+    if(!isSilent) msg('数据加载中...', true);
+    var cb = '?t=' + new Date().getTime();
+    api('/contents/index.html' + cb).then(function(r) {
+        var newHtml = bD(r.content);
+        cloudHash = r.sha;
+        localStorage.setItem('ksx_cache_hash', cloudHash);
+        idxSha = r.sha; idxHtml = newHtml;
+        return Promise.all([api('/contents/img' + cb).catch(function(){return [];}), api('/contents/mp3' + cb).catch(function(){return [];})]);
+    }).then(function(res) {
+        allImgs = res[0] || []; allAudio = res[1] || [];
+        var d = { idxSha: idxSha, idxHtml: idxHtml, allImgs: allImgs, allAudio: allAudio };
+        localStorage.setItem('ksx_cached_data', JSON.stringify(d));
+        extractAndRender();
+        if (!isSilent) msg('刷新成功');
+    }).catch(function() { if(!isSilent) msg('数据读取异常'); });
+}
+
+
+function doSeqUp(tAct) {
+    var c = 0, fld = curType === 'img' ? 'img' : 'mp3';
+    function upN() {
+        if(c >= upQueue.length) {
+            bumpCacheVer();
+            msg('资源已成功上传');
+            loadData();
+            return;
+        }
+        msg('上传执行 ' + (c + 1) + '/' + upQueue.length + '...', true);
+        var fn = upQueue[c].name + upQueue[c].ext;
+        api('/contents/' + fld + '/' + fn, 'PUT', { message: 'Up ' + fn, content: upQueue[c].b64 }).then(function() {
+            c++; upN();
+        }).catch(function() { 
+            c++; upN(); 
+        });
+    }
+    upN();
+}
+
+
+
+function commitDelRaw(p, s, n) {
+    msg('删除中...', true);
+    api('/contents/'+p, 'DELETE', {message:'Del '+n, sha:s}).then(function(){
+        bumpCacheVer();
+        msg('已彻底删除');
+        loadData();
+    }).catch(function(){ msg('删除失败'); });
+}
+
+
+function doMultiDelete() {
+    if(selItems.length === 0) return msg('请先选择');
+    msg('批量删除中...', true);
+    var c = 0;
+    function delNext() {
+        if(c >= selItems.length) {
+            bumpCacheVer();
+            msg('批量删除成功');
+            cancelMulti();
+            loadData();
+            return;
+        }
+        var fn = selItems[c];
+        var targetF = findFile(multiType==='img'?allImgs:allAudio, fn);
+        if(!targetF) { c++; delNext(); return; }
+        api('/contents/'+targetF.path, 'DELETE', {message:'Bulk Del '+fn, sha:targetF.sha})
+        .then(function(){ c++; delNext(); })
+        .catch(function(){ c++; delNext(); });
+    }
+    delNext();
+}
+
+
+function syncFoldersToIndex() {
+    msg('正在校准库文件...', true);
+    var pI = api('/contents/img').catch(function(){return [];});
+    var pA = api('/contents/mp3').catch(function(){return [];});
+    var pJ = api('/contents/js').catch(function(){return [];});
+
+    Promise.all([pI, pA, pJ]).then(function(res) {
+        var realI = (res[0]||[]).map(function(f){return f.name;});
+        var realA = (res[1]||[]).map(function(f){return f.name;});
+        var realJ = (res[2]||[]).map(function(f){return f.name;});
+        
+        activeImgs = activeImgs.filter(function(n){ return realI.indexOf(n) !== -1; });
+        activeAudio = activeAudio.filter(function(n){ return realA.indexOf(n) !== -1; });
+        
+        var nH = idxHtml;
+        var tagRe = new RegExp('<scr'+'ipt[^>]*src\\s*=\\s*[\'"](?:\\.\\/|\\/)?js\\/([^\'"]+)[\'"][^>]*><\\/scr'+'ipt>\\s*', 'ig');
+        
+        nH = nH.replace(tagRe, function(match, p1) {
+            var dN = '';
+            try { dN = decodeURIComponent(p1); } catch(e) { dN = p1; }
+            if (realJ.indexOf(dN) === -1 && realJ.indexOf(p1) === -1) {
+                return '';
+            }
+            return match;
+        });
+        
+        idxHtml = nH;
+        return saveIdx(true);
+    }).then(function() {
+        msg('同步完成，已清理无效记录');
+        loadData();
+    }).catch(function() {
+        msg('同步失败');
+    });
+}
+
+function logout() { 
+    localStorage.removeItem('gt'); 
+    sessionStorage.removeItem('gt'); 
+    localStorage.removeItem('ksx_cached_data'); 
+    location.reload(); 
+}
+
+
+function openUpload(t) {
+    curType = t;
+    var i = document.createElement('input'); 
+    i.type = 'file'; 
+    i.multiple = true; 
+    i.accept = t === 'img' ? 'image/*' : 'audio/mpeg,.mp3';
+    i.onchange = function(e) {
+        if(e.target.files.length === 0) return;
+        upQueue = [];
+        for(var j=0; j<e.target.files.length; j++) {
+            var f = e.target.files[j];
+            var p = f.name.split('.'); var x = p.pop();
+            upQueue.push({ file: f, name: p.join('.'), ext: '.'+x, b64: '' });
+        }
+        renderUpList();
+        document.getElementById('m-up').style.display = 'flex';
+        clsBs();
+    }; 
+    i.click();
+}
+
+
+
+
+function checkChange(id, barId) {
+    var el = document.getElementById(id);
+    var bar = document.getElementById(barId);
+    if (el.value !== window.initVals[id]) {
+        bar.style.display = 'block';
+    } else {
+        bar.style.display = 'none';
+    }
+}
+
+function cancelChange(id, barId) {
+    document.getElementById(id).value = window.initVals[id];
+    document.getElementById(barId).style.display = 'none';
+}
+
+function checkLayoutChange() {
+    var md = document.getElementById('col-md').value;
+    var mt = document.getElementById('col-mt').value;
+    var pd = document.getElementById('col-pd').value;
+    var pt = document.getElementById('col-pt').value;
+    var bar = document.getElementById('act-layout');
+    if (md !== window.initVals['col-md'] || mt !== window.initVals['col-mt'] || pd !== window.initVals['col-pd'] || pt !== window.initVals['col-pt']) {
+        bar.style.display = 'block';
+    } else {
+        bar.style.display = 'none';
+    }
+}
+
+function cancelLayoutChange() {
+    document.getElementById('col-md').value = window.initVals['col-md'];
+    document.getElementById('col-mt').value = window.initVals['col-mt'];
+    document.getElementById('col-pd').value = window.initVals['col-pd'];
+    document.getElementById('col-pt').value = window.initVals['col-pt'];
+    document.getElementById('act-layout').style.display = 'none';
+}
+
+
+
+
+
+
+var upPos = 'start';
+function toggleUpPos(val) {
+    document.getElementById('up-pos-ctrl').style.display = val ? 'flex' : 'none';
+}
+function setUpPos(p) {
+    upPos = p;
+    document.getElementById('pos-start').classList.toggle('active', p === 'start');
+    document.getElementById('pos-end').classList.toggle('active', p === 'end');
+}
+
+
+
+function saveField(type) {
+    var nH = idxHtml;
+    var msgTxt = '';
+
+    if (type === 'name') {
+        var nm = document.getElementById('site-name').value;
+        nH = nH.replace(/<title>([\s\S]*?)<\/title>/, '<title>'+nm+'</title>')
+               .replace(/<meta property="og:title" content="([\s\S]*?)">/, '<meta property="og:title" content="'+nm+'">')
+               .replace(/"headline":\s*"([^"]*)"/, '"headline": "'+nm+'"');
+        msgTxt = '网站名称';
+    } else if (type === 'intro') {
+        var i = document.getElementById('site-intro').value;
+        nH = nH.replace(/<meta name="description" content="([\s\S]*?)">/, '<meta name="description" content="'+i+'">')
+               .replace(/<meta property="og:description" content="([\s\S]*?)">/, '<meta property="og:description" content="'+i+'">')
+               .replace(/"description":\s*"([^"]*)"/, '"description": "'+i+'"');
+        msgTxt = '网站介绍';
+    } else if (type === 'ui-title') {
+        var uiT = document.getElementById('site-ui-title').value;
+        nH = nH.replace(/<div class="title">[\s\S]*?<\/div>/, '<div class="title">'+uiT+'</div>');
+        msgTxt = '小标题一';
+    } else if (type === 'ui-sub') {
+        var uiS = document.getElementById('site-ui-sub').value;
+        nH = nH.replace(/<div class="subtitle">[\s\S]*?<\/div>/, '<div class="subtitle">'+uiS+'</div>');
+        msgTxt = '小标题二';
+    } else if (type === 'layout') {
+        var md = document.getElementById('col-md').value || '4';
+        var mt = document.getElementById('col-mt').value || '5';
+        var pd = document.getElementById('col-pd').value || '11';
+        var pt = document.getElementById('col-pt').value || '13';
+        nH = nH.replace(/--col-mobile-default:\s*\d+;/, '--col-mobile-default: ' + md + ';')
+               .replace(/--col-mobile-toggle:\s*\d+;/, '--col-mobile-toggle: ' + mt + ';')
+               .replace(/--col-pc-default:\s*\d+;/, '--col-pc-default: ' + pd + ';')
+               .replace(/--col-pc-toggle:\s*\d+;/, '--col-pc-toggle: ' + pt + ';');
+        msgTxt = '布局参数';
+    }
+
+    msg('保存中...', true);
+    api('/contents/index.html', 'PUT', { message: 'Update ' + msgTxt, content: bE(nH), sha: idxSha }).then(function(r){
+        idxSha = r.content.sha;
+        idxHtml = nH;
+        
+        if (type === 'name') window.initVals['site-name'] = document.getElementById('site-name').value;
+        if (type === 'intro') window.initVals['site-intro'] = document.getElementById('site-intro').value;
+        if (type === 'ui-title') window.initVals['site-ui-title'] = document.getElementById('site-ui-title').value;
+        if (type === 'ui-sub') window.initVals['site-ui-sub'] = document.getElementById('site-ui-sub').value;
+        if (type === 'layout') {
+            window.initVals['col-md'] = document.getElementById('col-md').value;
+            window.initVals['col-mt'] = document.getElementById('col-mt').value;
+            window.initVals['col-pd'] = document.getElementById('col-pd').value;
+            window.initVals['col-pt'] = document.getElementById('col-pt').value;
+        }
+
+        if (type === 'name') document.getElementById('act-name').style.display = 'none';
+        if (type === 'intro') document.getElementById('act-intro').style.display = 'none';
+        if (type === 'ui-title') document.getElementById('act-ui-title').style.display = 'none';
+        if (type === 'ui-sub') document.getElementById('act-ui-sub').style.display = 'none';
+        if (type === 'layout') document.getElementById('act-layout').style.display = 'none';
+
+        msg(msgTxt + '已保存');
+    });
+}
+
+
+
+
+
+
+
+
+
+function parseIdx() {
+    var rI = /(const rawImageFiles = \[)([\s\S]*?)(\];)/;
+    var rA = /(const musicFiles = \[)([\s\S]*?)(\];)/;
+    var mI = idxHtml.match(rI); var mA = idxHtml.match(rA);
+    activeImgs = mI ? mI[2].split(',').map(function(s){return s.trim().replace(/['"]/g,'');}).filter(Boolean) : [];
+    activeAudio = mA ? mA[2].split(',').map(function(s){return s.trim().replace(/['"]/g,'');}).filter(Boolean) : [];
+}
+
+function findFile(arr, n) {
+    for(var i=0; i<arr.length; i++) if(arr[i].name === n) return arr[i];
+    return null;
+}
+
+function renderMedia() {
+    var hI='', hA='', hDI='', hDA='';
+
+    for(var i=0; i<activeImgs.length; i++) {
+        var n = activeImgs[i];
+        var f = findFile(allImgs, n);
+        if(f) {
+            hI += '<div class="img-item '+(selItems.indexOf(f.name)!==-1?'sel':'')+'" id="i-'+f.sha+'" data-name="'+f.name+'" ontouchstart="ts(event, \''+f.name+'\', \''+f.path+'\', \''+f.sha+'\', \'img\', true)" ontouchmove="tm(event)" ontouchend="te(event)" onclick="iClk(\''+f.name+'\', this)">'+
+                  '<img src="'+f.download_url+'" loading="lazy"><div class="img-mask">'+f.name+'</div></div>';
+        }
+    }
+    
+    for(var j=0; j<activeAudio.length; j++) {
+        var aName = activeAudio[j];
+        var af = findFile(allAudio, aName);
+        if(af) {
+            var isP = (playPath === af.download_url && !audioObj.paused);
+            hA += '<div class="audio-item '+(isP?'playing':'')+' '+(selItems.indexOf(af.name)!==-1?'sel':'')+'" id="i-'+af.sha+'" data-name="'+af.name+'" ontouchstart="ts(event, \''+af.name+'\', \''+af.path+'\', \''+af.sha+'\', \'audio\', true)" ontouchmove="tm(event)" ontouchend="te(event)" onclick="aClk(\''+af.name+'\', \''+af.download_url+'\', this)">'+
+                  '<div class="audio-info">'+af.name+'</div><svg class="play-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>';
+        }
+    }
+
+    for(var k=0; k<allImgs.length; k++) {
+        var imgF = allImgs[k];
+        if(imgF.type === 'file' && activeImgs.indexOf(imgF.name) === -1) {
+            hDI += '<div class="img-item '+(selItems.indexOf(imgF.name)!==-1?'sel':'')+'" id="i-'+imgF.sha+'" data-name="'+imgF.name+'" ontouchstart="ts(event, \''+imgF.name+'\', \''+imgF.path+'\', \''+imgF.sha+'\', \'img\', false)" ontouchmove="tm(event)" ontouchend="te(event)" onclick="iClk(\''+imgF.name+'\', this)">'+
+                   '<img src="'+imgF.download_url+'" loading="lazy"><div class="img-mask">'+imgF.name+'</div></div>';
+        }
+    }
+    
+    for(var l=0; l<allAudio.length; l++) {
+        var audF = allAudio[l];
+        if(audF.type === 'file' && activeAudio.indexOf(audF.name) === -1) {
+            hDA += '<div class="audio-item '+(selItems.indexOf(audF.name)!==-1?'sel':'')+'" id="i-'+audF.sha+'" data-name="'+audF.name+'" ontouchstart="ts(event, \''+audF.name+'\', \''+audF.path+'\', \''+audF.sha+'\', \'audio\', false)" ontouchmove="tm(event)" ontouchend="te(event)" onclick="aClk(\''+audF.name+'\', \''+audF.download_url+'\', this)">'+
+                   '<div class="audio-info">'+audF.name+'</div></div>';
+        }
+    }
+
+    document.getElementById('img-list').innerHTML = hI;
+    document.getElementById('audio-list').innerHTML = hA;
+    document.getElementById('dis-img-list').innerHTML = hDI;
+    document.getElementById('dis-audio-list').innerHTML = hDA;
+}
+
+
+function extractAndRender() {
+    var tM = idxHtml.match(/<title>([\s\S]*?)<\/title>/);
+    var dM = idxHtml.match(/<meta name="description" content="([\s\S]*?)">/);
+    var uiTitleM = idxHtml.match(/<div class="title">([\s\S]*?)<\/div>/);
+    var uiSubM = idxHtml.match(/<div class="subtitle">([\s\S]*?)<\/div>/);
+    var mdM = idxHtml.match(/--col-mobile-default:\s*(\d+);/);
+    var mtM = idxHtml.match(/--col-mobile-toggle:\s*(\d+);/);
+    var pdM = idxHtml.match(/--col-pc-default:\s*(\d+);/);
+    var ptM = idxHtml.match(/--col-pc-toggle:\s*(\d+);/);
+    
+    var vName = tM ? tM[1] : '';
+    var vIntro = dM ? dM[1] : '';
+    var vUiTitle = uiTitleM ? uiTitleM[1] : '';
+    var vUiSub = uiSubM ? uiSubM[1] : '';
+    var vMd = mdM ? mdM[1] : '';
+    var vMt = mtM ? mtM[1] : '';
+    var vPd = pdM ? pdM[1] : '';
+    var vPt = ptM ? ptM[1] : '';
+
+    document.getElementById('site-name').value = vName;
+    document.getElementById('site-intro').value = vIntro;
+    document.getElementById('site-ui-title').value = vUiTitle;
+    document.getElementById('site-ui-sub').value = vUiSub;
+    document.getElementById('col-md').value = vMd;
+    document.getElementById('col-mt').value = vMt;
+    document.getElementById('col-pd').value = vPd;
+    document.getElementById('col-pt').value = vPt;
+
+    window.initVals = {
+        'site-name': vName,
+        'site-intro': vIntro,
+        'site-ui-title': vUiTitle,
+        'site-ui-sub': vUiSub,
+        'col-md': vMd,
+        'col-mt': vMt,
+        'col-pd': vPd,
+        'col-pt': vPt
+    };
+
+    var bars = document.querySelectorAll('.action-bar');
+    for(var i=0; i<bars.length; i++) bars[i].style.display = 'none';
+
+    var swCache = document.getElementById('switch-cache');
+    if (swCache) {
+        var isCacheOn = idxHtml.indexOf('navigator.serviceWorker.register') !== -1;
+        swCache.checked = isCacheOn;
+    }
+    
+    parseIdx();
+    renderPlg();
+    renderMedia();
+}
+
+
+
+function renderPlg() {
+    api('/contents/js').then(function(fs) {
+        var h = '';
+        for(var i=0; i<fs.length; i++) {
+            var f = fs[i];
+            if(f.name.indexOf('.js')===f.name.length-3) {
+                var safeN = f.name.replace(/\./g, '\\\\.');
+                var encN = encodeURIComponent(f.name).replace(/\./g, '\\\\.');
+                var tagRe = new RegExp('<scr'+'ipt[^>]*src\\s*=\\s*[\'"](?:\\.\\/|\\/)?js\\/(?:'+safeN+'|'+encN+')[\'"][^>]*>', 'i');
+                var act = tagRe.test(idxHtml);
+                var pName = f.name.replace('.js', '');
+                var isPrev = previewedPlgs[f.name];
+                
+                h += '<div class="plg-item"><div class="plg-name '+(isPrev?'plg-previewing':'')+'" onclick="previewPlg(\''+f.name+'\')">'+pName+(isPrev?' (预览中)':'')+'</div><label class="switch"><input type="checkbox" '+(act?'checked':'')+' onclick="event.preventDefault(); safeAction(\'状态控制\',\'确认执行该操作吗？\', function(){togPlg(\''+f.name+'\', '+(act?'false':'true')+')})"><span class="slider"></span></label></div>';
+            }
+        }
+        document.getElementById('plg-list').innerHTML = h;
+    }).catch(function(){});
+}
+
+
+
+
+
+
+function toggleCache(cb) {
+    var act = cb.checked;
+    cb.checked = !act; 
+    
+    safeAction('缓存控制', '确认更改前台文件运行策略？', function(){
+        var nH = idxHtml;
+        var swRegStr = "<scr"+"ipt>\n//离线缓存执行脚本 执行：缓存.js\nif ('serviceWorker' in navigator) {\n    window.addEventListener('load', () => {\n        navigator.serviceWorker.register('/缓存.js').catch(() => {});\n    });\n}\n</scr"+"ipt>";
+        var swUnregStr = "<scr"+"ipt>\n//注销缓存执行脚本\nif ('serviceWorker' in navigator) {\n    navigator.serviceWorker.getRegistrations().then(function(rs) {\n        for(var i=0; i<rs.length; i++) rs[i].unregister();\n    });\n}\n</scr"+"ipt>";
+
+        var regRe = new RegExp('<scr'+'ipt>(?:(?!<scr'+'ipt>)[\\s\\S])*?//离线缓存执行脚本(?:(?!<scr'+'ipt>)[\\s\\S])*?</scr'+'ipt>\\n?', 'g');
+        var unregRe = new RegExp('<scr'+'ipt>(?:(?!<scr'+'ipt>)[\\s\\S])*?//注销缓存执行脚本(?:(?!<scr'+'ipt>)[\\s\\S])*?</scr'+'ipt>\\n?', 'g');
+        var rawRe = new RegExp('<scr'+'ipt>(?:(?!<scr'+'ipt>)[\\s\\S])*?navigator\\.serviceWorker\\.register\\(\\s*[\'"]/缓存\\.js[\'"]\\s*\\)(?:(?!<scr'+'ipt>)[\\s\\S])*?</scr'+'ipt>\\n?', 'g');
+
+        nH = nH.replace(regRe, '').replace(unregRe, '').replace(rawRe, '');
+        var injectStr = (act ? swRegStr : swUnregStr) + "\n";
+        nH = nH.replace(/<\/body>/i, injectStr + '</body>');
+
+        msg('处理中...', true);
+        api('/contents/index.html', 'PUT', {message: 'Toggle Cache SW', content: bE(nH), sha: idxSha}).then(function(r){ 
+            idxSha = r.content.sha; 
+            idxHtml = nH; 
+            cb.checked = act; 
+            msg('状态已更改'); 
+        }).catch(function(){
+            msg('操作失败');
+        });
+    });
+}
+
+
+
+
+function renderPlg() {
+    api('/contents/js').then(function(fs) {
+        var h = '';
+        for(var i=0; i<fs.length; i++) {
+            var f = fs[i];
+            if(f.name.indexOf('.js')===f.name.length-3) {
+                var safeN = escapeReg(f.name);
+                var encN = escapeReg(encodeURIComponent(f.name));
+                var tagRe = new RegExp('<scr'+'ipt[^>]*src\\s*=\\s*[\'"](?:\\.\\/|\\/)?js\\/(?:'+safeN+'|'+encN+')[\'"][^>]*><\\/scr'+'ipt>\\s*', 'i');
+                var act = tagRe.test(idxHtml);
+                var pName = f.name.replace('.js', '');
+                var isPrev = previewedPlgs[f.name];
+                
+                h += '<div class="plg-item"><div class="plg-name '+(isPrev?'plg-previewing':'')+'" onclick="previewPlg(\''+f.name+'\', \''+f.download_url+'\')">'+pName+(isPrev?' (预览中)':'')+'</div><label class="switch"><input type="checkbox" '+(act?'checked':'')+' onclick="event.preventDefault(); safeAction(\'状态控制\',\'确认执行该操作吗？\', function(){togPlg(\''+f.name+'\', '+(act?'false':'true')+')})"><span class="slider"></span></label></div>';
+            }
+        }
+        document.getElementById('plg-list').innerHTML = h;
+    }).catch(function(){});
+}
+
+
+function previewPlg(n, url) {
+    if (previewedPlgs[n]) {
+        var s = document.getElementById('prev-' + n);
+        if (s) s.parentNode.removeChild(s);
+        
+        delete previewedPlgs[n];
+        
+        if (Object.keys(previewedPlgs).length === 0) {
+            localStorage.removeItem('ksx_plg_previews');
+        } else {
+            localStorage.setItem('ksx_plg_previews', JSON.stringify(previewedPlgs));
+        }
+
+        var cvs = document.querySelectorAll('body > canvas:not(#cvs)');
+        for(var i=0; i<cvs.length; i++) cvs[i].parentNode.removeChild(cvs[i]);
+
+        for (var key in previewedPlgs) {
+            if (previewedPlgs[key]) {
+                var oldS = document.getElementById('prev-' + key);
+                if (oldS) oldS.parentNode.removeChild(oldS);
+                
+                (function(name, u) {
+                    fetch(u).then(function(res){ return res.text(); }).then(function(code){
+                        var ns = document.createElement('script');
+                        ns.id = 'prev-' + name;
+                        ns.textContent = "try { (function() {\n" + code + "\n})(); } catch(e) { console.error(e); }";
+                        document.body.appendChild(ns);
+                        window.dispatchEvent(new Event('load'));
+                    }).catch(function(){});
+                })(key, previewedPlgs[key]);
+            }
+        }
+
+        msg('已关闭预览');
+        renderPlg();
+    } else {
+        msg('获取云端插件中...', true);
+        var targetUrl = url || ('../js/' + n);
+        fetch(targetUrl).then(function(res) { 
+            return res.text(); 
+        }).then(function(code) {
+            var ns = document.createElement('script');
+            ns.id = 'prev-' + n;
+            ns.textContent = "try { (function() {\n" + code + "\n})(); } catch(e) { console.error(e); }";
+            document.body.appendChild(ns);
+            window.dispatchEvent(new Event('load'));
+            
+            previewedPlgs[n] = targetUrl;
+            localStorage.setItem('ksx_plg_previews', JSON.stringify(previewedPlgs));
+            
+            msg('已注入执行');
+            renderPlg();
+        }).catch(function() {
+            msg('插件获取失败');
+        });
+    }
+}
+
+
+function autoRestorePreviews() {
+    if (window.previewsRestored) return;
+    window.previewsRestored = true;
+    
+    var saved = localStorage.getItem('ksx_plg_previews');
+    if (saved) {
+        previewedPlgs = JSON.parse(saved);
+        for (var n in previewedPlgs) {
+            var targetUrl = previewedPlgs[n];
+            if (targetUrl) {
+                (function(name, u) {
+                    fetch(u).then(function(res){ return res.text(); }).then(function(code){
+                        var ns = document.createElement('script');
+                        ns.id = 'prev-' + name;
+                        ns.textContent = "try { (function() {\n" + code + "\n})(); } catch(e) { console.error(e); }";
+                        document.body.appendChild(ns);
+                        window.dispatchEvent(new Event('load'));
+                    }).catch(function(){});
+                })(n, targetUrl);
+            }
+        }
+    }
+}
+
+
+function togPlg(n, e) {
+    var nH = idxHtml;
+    var safeN = escapeReg(n);
+    var encN = escapeReg(encodeURIComponent(n));
+    var tagRe = new RegExp('<scr'+'ipt[^>]*src\\s*=\\s*[\'"](?:\\.\\/|\\/)?js\\/(?:'+safeN+'|'+encN+')[\'"][^>]*><\\/scr'+'ipt>\\s*', 'ig');
+    
+    var isTurnOn = String(e) === 'true';
+    
+    if(isTurnOn) {
+        if(!tagRe.test(nH)) {
+            var st = '<scr'+'ipt src="/js/'+n+'"></scr'+'ipt>\n';
+            nH = nH.replace(/<\/body>/i, st + '</body>');
+        }
+    } else {
+        nH = nH.replace(tagRe, '');
+    }
+    
+    msg('处理中...', true);
+    api('/contents/index.html', 'PUT', { message: 'Toggle '+n, content: bE(nH), sha: idxSha }).then(function(r) { 
+        idxSha=r.content.sha; 
+        idxHtml=nH; 
+        msg('配置已保存'); 
+        renderPlg(); 
+    }).catch(function() {
+        msg('操作失败'); 
+    });
+}
+
+
+
+
+
+function saveField(type) {
+    var nH = idxHtml;
+    var msgTxt = '';
+
+    if (type === 'name') {
+        var nm = document.getElementById('site-name').value;
+        nH = nH.replace(/<title>([\s\S]*?)<\/title>/, '<title>'+nm+'</title>')
+               .replace(/<meta property="og:title" content="([\s\S]*?)">/, '<meta property="og:title" content="'+nm+'">')
+               .replace(/"headline":\s*"([^"]*)"/, '"headline": "'+nm+'"');
+        msgTxt = '网站名称';
+    } else if (type === 'intro') {
+        var i = document.getElementById('site-intro').value;
+        nH = nH.replace(/<meta name="description" content="([\s\S]*?)">/, '<meta name="description" content="'+i+'">')
+               .replace(/<meta property="og:description" content="([\s\S]*?)">/, '<meta property="og:description" content="'+i+'">')
+               .replace(/"description":\s*"([^"]*)"/, '"description": "'+i+'"');
+        msgTxt = '网站介绍';
+    } else if (type === 'ui-title') {
+        var uiT = document.getElementById('site-ui-title').value;
+        nH = nH.replace(/<div class="title">[\s\S]*?<\/div>/, '<div class="title">'+uiT+'</div>');
+        msgTxt = '小标题一';
+    } else if (type === 'ui-sub') {
+        var uiS = document.getElementById('site-ui-sub').value;
+        nH = nH.replace(/<div class="subtitle">[\s\S]*?<\/div>/, '<div class="subtitle">'+uiS+'</div>');
+        msgTxt = '小标题二';
+    } else if (type === 'layout') {
+        var md = document.getElementById('col-md').value || '4';
+        var mt = document.getElementById('col-mt').value || '5';
+        var pd = document.getElementById('col-pd').value || '11';
+        var pt = document.getElementById('col-pt').value || '13';
+        nH = nH.replace(/--col-mobile-default:\s*\d+;/, '--col-mobile-default: ' + md + ';')
+               .replace(/--col-mobile-toggle:\s*\d+;/, '--col-mobile-toggle: ' + mt + ';')
+               .replace(/--col-pc-default:\s*\d+;/, '--col-pc-default: ' + pd + ';')
+               .replace(/--col-pc-toggle:\s*\d+;/, '--col-pc-toggle: ' + pt + ';');
+        msgTxt = '布局参数';
+    }
+
+    msg('保存中...', true);
+    api('/contents/index.html', 'PUT', { message: 'Update ' + msgTxt, content: bE(nH), sha: idxSha }).then(function(r){
+        idxSha = r.content.sha;
+        idxHtml = nH;
+        
+        if (type === 'name') window.initVals['site-name'] = document.getElementById('site-name').value;
+        if (type === 'intro') window.initVals['site-intro'] = document.getElementById('site-intro').value;
+        if (type === 'ui-title') window.initVals['site-ui-title'] = document.getElementById('site-ui-title').value;
+        if (type === 'ui-sub') window.initVals['site-ui-sub'] = document.getElementById('site-ui-sub').value;
+        if (type === 'layout') {
+            window.initVals['col-md'] = document.getElementById('col-md').value;
+            window.initVals['col-mt'] = document.getElementById('col-mt').value;
+            window.initVals['col-pd'] = document.getElementById('col-pd').value;
+            window.initVals['col-pt'] = document.getElementById('col-pt').value;
+        }
+
+        if (type === 'name') document.getElementById('btn-save-name').style.display = 'none';
+        if (type === 'intro') document.getElementById('btn-save-intro').style.display = 'none';
+        if (type === 'ui-title') document.getElementById('btn-save-ui-title').style.display = 'none';
+        if (type === 'ui-sub') document.getElementById('btn-save-ui-sub').style.display = 'none';
+        if (type === 'layout') document.getElementById('btn-save-layout').style.display = 'none';
+
+        msg(msgTxt + '已保存');
+    });
+}
+
+function bumpCacheVersion() {
+    msg('正在刷新前台缓存...', true);
+    api('/contents/缓存.js?t=' + new Date().getTime()).then(function(r) {
+        var content = bD(r.content);
+        var sha = r.sha;
+        
+        var newContent = content.replace(/(CACHE_NAME\s*=\s*['"][^0-9]*)(\d+)([^0-9]*['"])/, function(match, p1, p2, p3) {
+            return p1 + (parseInt(p2) + 1) + p3;
+        });
+        
+        if (content !== newContent) {
+            api('/contents/缓存.js', 'PUT', { message: 'Bump cache version', content: bE(newContent), sha: sha }).then(function() {
+                msg('前台缓存已强制刷新');
+            }).catch(function() {
+                msg('缓存刷新失败');
+            });
+        } else {
+            msg('保存成功');
+        }
+    }).catch(function() {
+        msg('保存成功');
+    });
+}
+
+
+function setCur(t,n,p,s) { curType=t; curName=n; curPath=p; curSha=s; }
+
+
+
+function initDrag(el, type, touch) {
+    dragSrcEl = el;
+    dragListClass = type === 'img' ? 'img-item' : 'audio-item';
+    var rect = dragSrcEl.getBoundingClientRect();
+    dragGhost = dragSrcEl.cloneNode(true);
+    dragGhost.style.position = 'fixed';
+    dragGhost.style.top = rect.top + 'px';
+    dragGhost.style.left = rect.left + 'px';
+    dragGhost.style.width = rect.width + 'px';
+    dragGhost.style.height = rect.height + 'px';
+    dragGhost.style.opacity = '0.85';
+    dragGhost.style.zIndex = '9999';
+    dragGhost.style.pointerEvents = 'none';
+    dragGhost.style.transform = 'scale(1.05)';
+    dragGhost.style.boxShadow = '0 10px 20px rgba(212,175,55,0.4)';
+    dragGhost.style.border = '1px solid var(--accent)';
+    document.body.appendChild(dragGhost);
+    
+    dragSrcEl.style.opacity = '0.2';
+    isDragging = true;
+    if(window.navigator && window.navigator.vibrate) window.navigator.vibrate(30);
+}
+
+function ts(e, n, p, s, t, isActive) {
+    isLongPress = false;
+    window.touchScrolling = false;
+    setCur(t, n, p, s);
+    curIsActive = isActive;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    
+    if(multiMode) return; 
+    
+    if(sortMode && t === curSortTab) {
+        e.stopPropagation();
+        e.preventDefault(); 
+        initDrag(e.currentTarget, t, e.touches[0]);
+        return;
+    }
+    
+    pressingEl = e.currentTarget;
+    pressingEl.classList.add('pressing');
+    
+    longT = setTimeout(function(){
+        isLongPress = true;
+        if(pressingEl) pressingEl.classList.remove('pressing');
+        openBs();
+    }, 500);
+}
+
+function tm(e) {
+    var touch = e.touches[0];
+    if(Math.abs(touch.clientX - startX) > 10 || Math.abs(touch.clientY - startY) > 10) {
+        window.touchScrolling = true;
+        if(!isDragging) {
+            clearTimeout(longT);
+            if(pressingEl) pressingEl.classList.remove('pressing');
+        }
+    }
+    
+    if(multiMode) return;
+    
+    if(sortMode && isDragging && dragGhost) {
+        e.preventDefault(); 
+        dragGhost.style.left = (touch.clientX - dragGhost.offsetWidth/2) + 'px';
+        dragGhost.style.top = (touch.clientY - dragGhost.offsetHeight/2) + 'px';
+        
+        var contentEl = document.querySelector('.content');
+        var rect = contentEl.getBoundingClientRect();
+        if(touch.clientY < rect.top + 80) contentEl.scrollTop -= 15;
+        if(touch.clientY > rect.bottom - 80) contentEl.scrollTop += 15;
+        
+        dragGhost.style.display = 'none';
+        var target = document.elementFromPoint(touch.clientX, touch.clientY);
+        dragGhost.style.display = 'block';
+        
+        if(target) {
+            var dropTarget = target.closest('.' + dragListClass);
+            if(dropTarget && dropTarget !== dragSrcEl) {
+                var parent = dragSrcEl.parentNode;
+                var srcIdx = Array.prototype.indexOf.call(parent.children, dragSrcEl);
+                var tgtIdx = Array.prototype.indexOf.call(parent.children, dropTarget);
+                if(srcIdx < tgtIdx) parent.insertBefore(dragSrcEl, dropTarget.nextSibling);
+                else parent.insertBefore(dragSrcEl, dropTarget);
+                sortDirty = true;
+            }
+        }
+    }
+}
+
+function te(e) {
+    clearTimeout(longT);
+    if(pressingEl) pressingEl.classList.remove('pressing');
+    if(multiMode) return;
+    if(sortMode && isDragging) {
+        isDragging = false;
+        if(dragGhost) { dragGhost.parentNode.removeChild(dragGhost); dragGhost = null; }
+        if(dragSrcEl) { dragSrcEl.style.opacity = '1'; dragSrcEl = null; }
+        
+        var els = document.querySelectorAll(curType==='img' ? '#img-list .img-item' : '#audio-list .audio-item');
+        var newArr = [];
+        for(var i=0; i<els.length; i++) newArr.push(els[i].getAttribute('data-name'));
+        if(curType==='img') activeImgs = newArr; else activeAudio = newArr;
+    }
+}
+
+function iClk(n, el) {
+    if(window.touchScrolling || isLongPress || sortMode) return;
+    if(multiMode) {
+        var ix = selItems.indexOf(n);
+        if(ix===-1) { selItems.push(n); el.classList.add('sel'); }
+        else { selItems.splice(ix,1); el.classList.remove('sel'); }
+    }
+}
+
+var curAudioName = '';
+
+function aClk(n, u, el) {
+    if(window.touchScrolling || isLongPress || sortMode) return;
+    if(multiMode) {
+        var ix = selItems.indexOf(n);
+        if(ix===-1) { selItems.push(n); el.classList.add('sel'); }
+        else { selItems.splice(ix,1); el.classList.remove('sel'); }
+    } else {
+        // 去除文件后缀名
+        var nameNoExt = n.substring(0, n.lastIndexOf('.'));
+        if (!nameNoExt) nameNoExt = n; // 防止遇到无后缀文件时变为空
+        curAudioName = nameNoExt;
+
+        if(playPath === u) { 
+            if(audioObj.paused) {
+                msg(nameNoExt + ' 加载中...', true);
+                audioObj.play().catch(function(){}); 
+            } else { 
+                audioObj.pause(); 
+                msg('已停止播放: ' + nameNoExt);
+            } 
+        } else { 
+            msg(nameNoExt + ' 加载中...', true);
+            audioObj.src = u; 
+            audioObj.play().catch(function(){}); 
+            playPath = u; 
+        }
+        renderMedia();
+    }
+}
+
+function playA(u) {} 
+
+// 监听缓冲完成，真正开始出声的瞬间
+audioObj.onplaying = function() { 
+    msg('正在播放: ' + curAudioName);
+    renderMedia(); 
+};
+
+audioObj.onpause = function() { 
+    renderMedia(); 
+};
+
+audioObj.onended = function() { 
+    renderMedia(); 
+};
+
+audioObj.onerror = function() { 
+    msg('音频加载失败');
+    renderMedia(); 
+};
+
+
+
+function openBs() {
+    var m = document.getElementById('bs-menu');
+    var h = '';
+    
+    if(curType === 'img') {
+        if(curIsActive) {
+            h += '<div class="bs-item" onclick="startSort(\'img\')">排序</div>';
+            h += '<div class="bs-item" onclick="safeAction(\'置顶图片\', \'置顶图片将排在首位\', doPin)">置顶</div>';
+            h += '<div class="bs-item" onclick="openRename()">重命名</div>';
+            h += '<div class="bs-item" onclick="startMulti(true)">多选</div>';
+            h += '<div class="bs-item" style="color:var(--danger);" onclick="safeAction(\'移至素材\', \'确认移出首页展示吗？\', function(){disA(\'img\', \''+curName+'\')})">禁用</div>';
+        } else {
+            h += '<div class="bs-item" style="color:var(--safe);" onclick="enM(\'img\', \''+curName+'\')">启用</div>';
+            h += '<div class="bs-item" onclick="openRename()">重命名</div>';
+            h += '<div class="bs-item" onclick="startMulti(false)">多选</div>';
+            h += '<div class="bs-item" style="color:var(--danger);" onclick="safeAction(\'删除\', \'不可恢复，确认执行吗？\', function(){commitDelRaw(\''+curPath+'\',\''+curSha+'\',\''+curName+'\')})">删除</div>';
+        }
+    } else if(curType === 'audio') {
+        if(curIsActive) {
+            h += '<div class="bs-item" onclick="startSort(\'audio\')">排序</div>';
+            h += '<div class="bs-item" onclick="openRename()">重命名</div>';
+            h += '<div class="bs-item" onclick="startMulti(true)">多选</div>';
+            h += '<div class="bs-item" style="color:var(--danger);" onclick="safeAction(\'移至素材\', \'确认移出首页展示吗？\', function(){disA(\'audio\', \''+curName+'\')})">禁用</div>';
+        } else {
+            h += '<div class="bs-item" style="color:var(--safe);" onclick="enM(\'audio\', \''+curName+'\')">启用</div>';
+            h += '<div class="bs-item" onclick="openRename()">重命名</div>';
+            h += '<div class="bs-item" onclick="startMulti(false)">多选</div>';
+            h += '<div class="bs-item" style="color:var(--danger);" onclick="safeAction(\'删除\', \'不可恢复，确认执行吗？\', function(){commitDelRaw(\''+curPath+'\',\''+curSha+'\',\''+curName+'\')})">删除</div>';
+        }
+    }
+    h += '<div class="bs-item" style="border-top:6px solid #0a0a0a;" onclick="clsBs()">取消</div>';
+    
+    openBsMenu('bs-menu');
+    m.innerHTML = h;
+}
+
+
+
+function openBsMenu(id) {
+    document.getElementById('bs-overlay').classList.add('show');
+    document.getElementById(id).classList.add('show');
+}
+
+function clsBs() { 
+    document.getElementById('bs-overlay').classList.remove('show');
+    document.querySelectorAll('.bs-menu').forEach(function(el){ el.classList.remove('show'); });
+}
+
+function cls(id) { document.getElementById(id).style.display = 'none'; }
+
+
+
+function playA(u) {
+    if(isLongPress || sortMode) return;
+    if(playPath === u) { 
+        if(audioObj.paused) audioObj.play(); else audioObj.pause(); 
+    } else { 
+        audioObj.src = u; audioObj.play(); playPath = u; 
+    }
+    renderMedia();
+}
+audioObj.onended = function() { renderMedia(); };
+audioObj.onpause = function() { renderMedia(); };
+audioObj.onplay = function() { renderMedia(); };
+
+function startSort(type) {
+    clsBs();
+    sortMode = true; curSortTab = type;
+    document.getElementById('sort-bar').style.display = 'flex';
+    document.body.classList.add('sort-mode');
+    renderMedia();
+    msg('按住任意文件即可拖拽');
+}
+function cancelSort() {
+    parseIdx();
+    sortMode = false; sortDirty = false; curSortTab = '';
+    document.getElementById('sort-bar').style.display = 'none';
+    document.body.classList.remove('sort-mode');
+    renderMedia();
+}
+function commitSort() {
+    saveIdx(false).then(function(){
+        sortMode = false; sortDirty = false; curSortTab = '';
+        document.getElementById('sort-bar').style.display = 'none';
+        document.body.classList.remove('sort-mode');
+        renderMedia();
+        msg('排布顺序已保存');
+    });
+}
+
+function doPin() {
+    msg('处理中...', true);
+    var ix = activeImgs.indexOf(curName);
+    if(ix!==-1) {
+        activeImgs.splice(ix, 1);
+        if(curName!=='迟来的深情.jpg') {
+            var hIx = activeImgs.indexOf('迟来的深情.jpg');
+            if(hIx!==-1) activeImgs.splice(hIx+1, 0, curName); else activeImgs.unshift(curName);
+        } else activeImgs.unshift(curName);
+        saveIdx(true).then(function(){ renderMedia(); hideMsg(); });
+    }
+}
+
+
+
+
+
+
+
+
+function renderUpList() {
+    var h = '';
+    for(var i=0; i<upQueue.length; i++) {
+        var q = upQueue[i];
+        h += '<div class="up-item"><input type="text" value="'+q.name+'" onchange="upQueue['+i+'].name=this.value"><span style="color:var(--dim)">'+q.ext+'</span><div class="icon-btn danger" onclick="upQueue.splice('+i+',1);renderUpList();"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div></div>';
+    }
+    document.getElementById('up-list').innerHTML = h;
+    if(upQueue.length === 0) document.getElementById('m-up').style.display = 'none';
+}
+
+
+function commitUp() {
+    document.getElementById('m-up').style.display = 'none';
+    msg('编码读取中...', true);
+    var targetAct = document.getElementById('up-target').checked;
+    var c = 0;
+    function readN() {
+        if(c >= upQueue.length) return doSeqUp(targetAct);
+        var fr = new FileReader();
+        fr.onload = function(e) { 
+            upQueue[c].b64 = e.target.result.split(',')[1]; 
+            c++; 
+            readN(); 
+        };
+        fr.readAsDataURL(upQueue[c].file);
+    }
+    readN();
+}
+
+
+
+
+
+function saveIdx(skipM) {
+    if(!skipM) msg('保存中...', true);
+    var rI = /(const rawImageFiles = \[)([\s\S]*?)(\];)/;
+    var rA = /(const musicFiles = \[)([\s\S]*?)(\];)/;
+    var nH = idxHtml;
+    
+    var strI = ''; for(var i=0; i<activeImgs.length; i++) { strI += "'" + activeImgs[i] + "'"; if(i!==activeImgs.length-1) strI += ',\n        '; }
+    var strA = ''; for(var j=0; j<activeAudio.length; j++) { strA += "'" + activeAudio[j] + "'"; if(j!==activeAudio.length-1) strA += ',\n        '; }
+    
+    nH = nH.replace(rI, '$1\n        ' + strI + '\n    $3');
+    nH = nH.replace(rA, '$1\n        ' + strA + '\n    $3');
+    
+    nH = nH.replace(/const imageFiles\s*=\s*rawImageFiles\.sort\([\s\S]*?\}\);/g, 'const imageFiles = rawImageFiles;');
+    nH = nH.replace(/const musicSorter\s*=\s*\([^)]*\)\s*=>\s*[^;]+;/g, '');
+    nH = nH.replace(/if\s*\(musicFiles\.length\)\s*musicFiles\.sort\(musicSorter\);/g, '');
+    
+    return api('/contents/index.html', 'PUT', {message:'Sync Media', content:bE(nH), sha:idxSha}).then(function(r){ 
+        idxSha=r.content.sha; 
+        idxHtml=nH; 
+        bumpCacheVer();
+        if(!skipM){renderMedia();hideMsg();} 
+    });
+}
+
+var multiIsActive = true, multiType = 'img';
+
+function startMulti(isActive) {
+    clsBs(); 
+    multiMode = true; 
+    selItems = []; 
+    multiIsActive = isActive;
+    multiType = curType;
+    isLongPress = false; 
+    
+    var mb = document.getElementById('multi-bar');
+    var h = '<button class="btn-cancel" onclick="cancelMulti()">取消</button>';
+    
+    if(multiIsActive) {
+        h += '<button onclick="safeAction(\'移至素材\', \'选中的文件将移出首页，确认操作？\', doMultiDisable)" style="background:var(--accent);color:#000;">移至素材</button>';
+    } else {
+        h += '<button onclick="safeAction(\'删除选中\', \'此操作不可恢复，确认彻底删除这些文件？\', doMultiDelete)" style="background:var(--danger);color:#fff;">彻底删除</button>';
+        h += '<button onclick="openMultiPub()" style="background:var(--safe);color:#000;">发布网站</button>';
+    }
+    mb.innerHTML = h;
+    mb.style.display = 'flex';
+    msg('点击进行选择');
+}
+
+function cancelMulti() {
+    multiMode = false; selItems = [];
+    document.getElementById('multi-bar').style.display='none';
+    var items = document.querySelectorAll('.img-item, .audio-item');
+    for(var i=0; i<items.length; i++) items[i].classList.remove('sel');
+}
+
+function doMultiDisable() {
+    for(var i=0; i<selItems.length; i++) {
+        var ix = activeImgs.indexOf(selItems[i]);
+        if(ix!==-1) activeImgs.splice(ix,1);
+    }
+    saveIdx().then(cancelMulti);
+}
+
+function openMultiPub() {
+    if(selItems.length === 0) return msg('请先选择文件');
+    document.getElementById('m-multi-pub').style.display = 'flex';
+}
+
+function doMultiEnable(pos) {
+    document.getElementById('m-multi-pub').style.display = 'none';
+    msg('处理中...', true);
+    var arr = multiType === 'img' ? activeImgs : activeAudio;
+    
+    var toAdd = [];
+    for(var i=0; i<selItems.length; i++) {
+        if(arr.indexOf(selItems[i]) === -1) toAdd.push(selItems[i]);
+    }
+    
+    if(pos === 'end') {
+        for(var j=0; j<toAdd.length; j++) arr.push(toAdd[j]);
+    } else {
+        if(multiType === 'img') {
+            for(var k=toAdd.length-1; k>=0; k--) {
+                var item = toAdd[k];
+                if(item === '迟来的深情.jpg') {
+                    arr.unshift(item);
+                } else {
+                    var currSfIdx = arr.indexOf('迟来的深情.jpg');
+                    if(currSfIdx !== -1) arr.splice(currSfIdx + 1, 0, item);
+                    else arr.unshift(item);
+                }
+            }
+        } else {
+            for(var k=toAdd.length-1; k>=0; k--) arr.unshift(toAdd[k]);
+        }
+    }
+    
+    saveIdx(true).then(function(){
+        cancelMulti();
+        loadData();
+        msg('已发布至网站');
+    });
+}
+
+
+
+
+function doMultiDisable() {
+    for(var i=0; i<selItems.length; i++) {
+        var ix = activeImgs.indexOf(selItems[i]);
+        if(ix!==-1) activeImgs.splice(ix,1);
+    }
+    saveIdx().then(cancelMulti);
+}
+
+
+
+function disA(t, n) {
+    msg('处理中...', true);
+    var arr = t === 'img' ? activeImgs : activeAudio;
+    var ix = arr.indexOf(n); 
+    if(ix !== -1) { arr.splice(ix, 1); saveIdx(true).then(loadData); }
+}
+
+function enM(t, n) {
+    clsBs();
+    selItems = [n];
+    multiType = t;
+    openMultiPub();
+}
+
+
+function tab(id, el, t) {
+    clsAll();
+    var ps = document.querySelectorAll('.panel'); for(var i=0; i<ps.length; i++) ps[i].classList.remove('active');
+    document.getElementById(id).classList.add('active');
+    var bs = document.querySelectorAll('.nav-btn'); for(var j=0; j<bs.length; j++) bs[j].classList.remove('active');
+    el.classList.add('active'); document.getElementById('h-title').innerText=t;
+}
+
+if(tk) { document.getElementById('v-login').classList.remove('active'); document.getElementById('v-app').classList.add('active'); loadData(); }
+</script>
+</body>
+</html>
