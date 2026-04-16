@@ -89,8 +89,47 @@ nav { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: #
 .up-item { display: flex; align-items: center; background: #111; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
 .up-item input { margin: 0; border: none; background: transparent; padding: 5px; flex: 1; }
 
-.multi-bar { position: fixed; bottom: 65px; left: 0; width: 100%; background: var(--card); border-top: 1px solid #222; display: none; justify-content: space-around; padding: 10px; z-index: 90; }
-.multi-bar button { margin: 0; padding: 10px; width: 45%; font-size: 14px; border-radius: 12px; }
+/* 音频选中高亮反馈 */
+.audio-item.sel { 
+    border-color: var(--safe) !important; 
+    background: rgba(46,213,115,0.1) !important; 
+    box-shadow: 0 0 10px rgba(46,213,115,0.2) !important; 
+}
+
+/* 底部悬浮药丸工具栏 (多选和排序共用) */
+#multi-bar, #sort-bar {
+    position: fixed;
+    bottom: 85px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: 90%;
+    background: rgba(18, 18, 18, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    display: none; 
+    align-items: center;
+    justify-content: center;
+    padding: 8px 15px;
+    z-index: 2000;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px);
+    gap: 10px;
+}
+
+#multi-bar button, #sort-bar button {
+    margin: 0;
+    padding: 8px 18px;
+    width: auto;
+    font-size: 13px;
+    border-radius: 20px;
+    flex: none;
+    white-space: nowrap;
+    min-width: 60px;
+}
+
+
+
 
 .custom-select { position: relative; width: 100%; margin-top: 0; }
 .select-selected { background: #0a0a0a; border: 1px solid #222; border-radius: 10px; padding: 14px; color: #fff; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
@@ -292,13 +331,18 @@ nav { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: #
 <div id="m-rename" class="modal">
     <div class="modal-content">
         <h3 style="margin:0 0 15px; font-size:16px;">重命名文件</h3>
-        <input type="text" id="rn-name" style="margin-top:0;">
+        <div style="display:flex; gap:8px; align-items:center;">
+            <input type="text" id="rn-name" placeholder="名称" style="flex:3; margin:0; padding:10px;">
+            <input type="text" id="rn-ext" placeholder="后缀" style="flex:1; margin:0; padding:10px; color:var(--dim); text-align:center;">
+        </div>
         <div class="modal-btns">
             <button class="btn-cancel" onclick="document.getElementById('m-rename').style.display='none'">取消</button>
             <button onclick="commitRename()">确认</button>
         </div>
     </div>
 </div>
+
+
 
 <div id="refresh-toast" class="refresh-bar">
     <span>发现新内容</span>
@@ -492,21 +536,21 @@ function escapeReg(s) {
 function openRename() {
     clsBs();
     var p = curName.split('.');
-    p.pop();
+    var ext = p.pop();
     document.getElementById('rn-name').value = p.join('.');
+    document.getElementById('rn-ext').value = ext;
     document.getElementById('m-rename').style.display='flex';
 }
 
+
+
 function commitRename() {
-    var p = curName.split('.');
-    var ext = '.' + p.pop();
-    var inputVal = document.getElementById('rn-name').value.trim();
-
-    if (inputVal.slice(-ext.length) === ext) {
-        inputVal = inputVal.slice(0, -ext.length);
-    }
-
-    var nN = inputVal + ext;
+    var nameVal = document.getElementById('rn-name').value.trim();
+    var extVal = document.getElementById('rn-ext').value.trim();
+    
+    if (extVal.indexOf('.') === 0) extVal = extVal.substring(1);
+    
+    var nN = nameVal + '.' + extVal;
     if(nN === curName) return document.getElementById('m-rename').style.display='none';
 
     document.getElementById('m-rename').style.display='none';
@@ -514,8 +558,10 @@ function commitRename() {
 
     var fld = curType === 'img' ? 'img' : 'mp3';
     var targetF = findFile(curType === 'img' ? allImgs : allAudio, curName);
-    
     if(!targetF) return msg('文件丢失');
+
+    var encPath = curPath.split('/').map(encodeURIComponent).join('/');
+    var encNewPath = fld + '/' + encodeURIComponent(nN);
 
     fetch(targetF.download_url).then(function(res) {
         return res.blob();
@@ -527,9 +573,9 @@ function commitRename() {
             fr.readAsDataURL(blob);
         });
     }).then(function(b64) {
-        return api('/contents/' + fld + '/' + nN, 'PUT', { message: 'Rn ' + nN, content: b64 });
+        return api('/contents/' + encNewPath, 'PUT', { message: 'Rn ' + nN, content: b64 });
     }).then(function() {
-        return api('/contents/' + curPath, 'DELETE', { message: 'Del ' + curName, sha: curSha });
+        return api('/contents/' + encPath, 'DELETE', { message: 'Del ' + curName, sha: curSha });
     }).then(function() {
         var arr = curType === 'img' ? activeImgs : activeAudio;
         var ix = arr.indexOf(curName);
@@ -540,8 +586,11 @@ function commitRename() {
         loadData();
     }).catch(function() {
         msg('重命名失败');
+        loadData();
     });
 }
+
+
 
 
 function fetchCloudData(isSilent) {
@@ -587,12 +636,17 @@ function doSeqUp(tAct) {
 
 function commitDelRaw(p, s, n) {
     msg('删除中...', true);
-    api('/contents/'+p, 'DELETE', {message:'Del '+n, sha:s}).then(function(){
+    var encPath = p.split('/').map(encodeURIComponent).join('/');
+    
+    api('/contents/' + encPath, 'DELETE', {message:'Del '+n, sha:s}).then(function(){
         bumpCacheVer();
         msg('已彻底删除');
         loadData();
-    }).catch(function(){ msg('删除失败'); });
+    }).catch(function(){ 
+        msg('删除失败'); 
+    });
 }
+
 
 
 function doMultiDelete() {
@@ -608,14 +662,18 @@ function doMultiDelete() {
             return;
         }
         var fn = selItems[c];
-        var targetF = findFile(multiType==='img'?allImgs:allAudio, fn);
+        var targetF = findFile(multiType === 'img' ? allImgs : allAudio, fn);
         if(!targetF) { c++; delNext(); return; }
-        api('/contents/'+targetF.path, 'DELETE', {message:'Bulk Del '+fn, sha:targetF.sha})
+        
+        var encPath = targetF.path.split('/').map(encodeURIComponent).join('/');
+        
+        api('/contents/' + encPath, 'DELETE', {message:'Bulk Del '+fn, sha:targetF.sha})
         .then(function(){ c++; delNext(); })
         .catch(function(){ c++; delNext(); });
     }
     delNext();
 }
+
 
 
 function syncFoldersToIndex() {
@@ -673,15 +731,23 @@ function openUpload(t) {
         upQueue = [];
         for(var j=0; j<e.target.files.length; j++) {
             var f = e.target.files[j];
+            
+            if (t === 'img' && f.type.indexOf('image/') !== 0) continue;
+            if (t !== 'img' && f.type.indexOf('audio/') !== 0 && f.name.indexOf('.mp3') === -1) continue;
+            
             var p = f.name.split('.'); var x = p.pop();
-            upQueue.push({ file: f, name: p.join('.'), ext: '.'+x, b64: '' });
+            upQueue.push({ file: f, name: p.join('.'), ext: x, b64: '' });
         }
+        
+        if(upQueue.length === 0) return msg('已过滤不匹配的文件格式');
+        
         renderUpList();
         document.getElementById('m-up').style.display = 'flex';
         clsBs();
     }; 
     i.click();
 }
+
 
 
 
@@ -1094,7 +1160,7 @@ function togPlg(n, e) {
     
     if(isTurnOn) {
         if(!tagRe.test(nH)) {
-            var st = '<scr'+'ipt src="/js/'+n+'"></scr'+'ipt>\n';
+            var st = '<scr'+'ipt src="./js/'+n+'"></scr'+'ipt>\n';
             nH = nH.replace(/<\/body>/i, st + '</body>');
         }
     } else {
@@ -1105,12 +1171,15 @@ function togPlg(n, e) {
     api('/contents/index.html', 'PUT', { message: 'Toggle '+n, content: bE(nH), sha: idxSha }).then(function(r) { 
         idxSha=r.content.sha; 
         idxHtml=nH; 
+        bumpCacheVer();
         msg('配置已保存'); 
         renderPlg(); 
     }).catch(function() {
         msg('操作失败'); 
     });
 }
+
+
 
 
 
@@ -1444,12 +1513,18 @@ audioObj.onplay = function() { renderMedia(); };
 
 function startSort(type) {
     clsBs();
-    sortMode = true; curSortTab = type;
-    document.getElementById('sort-bar').style.display = 'flex';
+    sortMode = true; 
+    curSortTab = type;
+    
+    var sb = document.getElementById('sort-bar');
+    sb.removeAttribute('style');
+    sb.style.display = 'flex';
+    
     document.body.classList.add('sort-mode');
     renderMedia();
-    msg('按住任意文件即可拖拽');
+    msg('长按任意文件开始拖拽');
 }
+
 function cancelSort() {
     parseIdx();
     sortMode = false; sortDirty = false; curSortTab = '';
@@ -1553,20 +1628,47 @@ function startMulti(isActive) {
     multiIsActive = isActive;
     multiType = curType;
     isLongPress = false; 
-    
+
     var mb = document.getElementById('multi-bar');
-    var h = '<button class="btn-cancel" onclick="cancelMulti()">取消</button>';
+    mb.removeAttribute('style'); 
+    mb.style.display = 'flex';
     
+    var bs = 'opacity:0.4; pointer-events:none; transition:all 0.2s;';
+    
+    var h = '<button class="btn-cancel" onclick="cancelMulti()">取消</button>';
     if(multiIsActive) {
-        h += '<button onclick="safeAction(\'移至素材\', \'选中的文件将移出首页，确认操作？\', doMultiDisable)" style="background:var(--accent);color:#000;">移至素材</button>';
+        h += '<button id="btn-m-dis" onclick="safeAction(\'移至素材\', \'确认禁用？\', doMultiDisable)" style="background:var(--accent); color:#000; ' + bs + '">禁用</button>';
     } else {
-        h += '<button onclick="safeAction(\'删除选中\', \'此操作不可恢复，确认彻底删除这些文件？\', doMultiDelete)" style="background:var(--danger);color:#fff;">彻底删除</button>';
-        h += '<button onclick="openMultiPub()" style="background:var(--safe);color:#000;">发布网站</button>';
+        h += '<button id="btn-m-del" onclick="safeAction(\'彻底删除\', \'确认删除？\', doMultiDelete)" style="background:transparent; color:var(--danger); border:1px solid var(--danger); ' + bs + '">删除</button>';
+        h += '<button id="btn-m-pub" onclick="openMultiPub()" style="background:var(--safe); color:#000; ' + bs + '">发布</button>';
     }
     mb.innerHTML = h;
-    mb.style.display = 'flex';
-    msg('点击进行选择');
+    msg('请点击选择');
+
+    if(!window.mcBnd) {
+        document.addEventListener('click', function() {
+            if(!multiMode) return;
+            setTimeout(function() {
+                var on = selItems.length > 0;
+                var op = on ? '1' : '0.4';
+                var pe = on ? 'auto' : 'none';
+                var b1 = document.getElementById('btn-m-dis');
+                if(b1) { b1.style.opacity = op; b1.style.pointerEvents = pe; }
+                var b2 = document.getElementById('btn-m-del');
+                if(b2) { b2.style.opacity = op; b2.style.pointerEvents = pe; }
+                var b3 = document.getElementById('btn-m-pub');
+                if(b3) { b3.style.opacity = op; b3.style.pointerEvents = pe; }
+            }, 50);
+        });
+        window.mcBnd = true;
+    }
 }
+
+
+
+
+
+
 
 function cancelMulti() {
     multiMode = false; selItems = [];
