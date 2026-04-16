@@ -1,6 +1,6 @@
 (function() {
     var s = document.createElement('style');
-    s.textContent = "@keyframes imgBreathe { 0%, 100% { transform: scale(1); filter: brightness(0.9) saturate(1); } 50% { transform: scale(1.1); filter: brightness(1.05) saturate(1.2); } } .breathe-act { animation: imgBreathe 5s ease-in-out infinite !important; will-change: transform, filter; } .img-wrap img { transition: none !important; }";
+    s.textContent = "@keyframes imgBreathe { 0%, 100% { transform: scale(1); filter: brightness(0.9) saturate(1); } 50% { transform: scale(1.1); filter: brightness(1.05) saturate(1.2); } } .breathe-act { animation: imgBreathe 4s ease-in-out infinite !important; will-change: transform, filter; } .img-wrap img { transition: none !important; }";
     document.head.appendChild(s);
     var obs = new IntersectionObserver(function(ens) {
         ens.forEach(function(e) {
