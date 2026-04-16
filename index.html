@@ -914,14 +914,14 @@ renderAllPerfectly();
 <script src="/js/雨落.js"></script>
 <script src="/js/分手时间.js"></script>
 <script src="/js/水波纹.js"></script>
+<script src="/js/飞雪.js"></script>
 <script>
-//离线缓存执行脚本 执行：缓存.js
+//注销缓存执行脚本
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/缓存.js').catch(() => {});
+    navigator.serviceWorker.getRegistrations().then(function(rs) {
+        for(var i=0; i<rs.length; i++) rs[i].unregister();
     });
 }
 </script>
-<script src="/js/飞雪.js"></script>
 </body>
 </html>
